@@ -2100,46 +2100,162 @@ const UpdateView = () => {
   const [version, setVersion] = useState<VersionInfo | null>(null);
   const [updating, setUpdating] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
+  const [credentials, setCredentials] = useState({ username: '', token: '' });
 
   useEffect(() => {
     fetch('/api/version').then(res => res.json()).then(setVersion);
   }, []);
 
   const handleUpdate = async () => {
+    if (!credentials.username || !credentials.token) {
+      alert("Por favor, introduce tu usuario y token de GitHub.");
+      return;
+    }
+
     setUpdating(true);
-    setLogs(prev => [...prev, "Iniciando actualización...", "Conectando con repositorio GitHub...", "Descargando paquetes..."]);
+    setLogs(prev => [...prev, "Iniciando actualización...", "Conectando con repositorio GitHub: ConHdeHacker/PSBD-Mgmt..."]);
     
-    setTimeout(async () => {
-      const res = await fetch('/api/update', { method: 'POST' });
+    try {
+      const res = await fetch('/api/update', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials)
+      });
       const data = await res.json();
-      setLogs(prev => [...prev, data.message, "Actualización completada con éxito."]);
+      
+      if (data.status === 'success') {
+        setLogs(prev => [...prev, data.message, "Actualización completada con éxito."]);
+      } else {
+        setLogs(prev => [...prev, `Error: ${data.message}`]);
+      }
+    } catch (error) {
+      setLogs(prev => [...prev, "Error de conexión con el servidor."]);
+    } finally {
       setUpdating(false);
-    }, 2000);
+    }
+  };
+
+  const handleExport = () => {
+    window.location.href = '/api/export';
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!confirm("¿Estás seguro? Esta acción reemplazará TODOS los datos actuales con los del archivo de respaldo.")) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        const res = await fetch('/api/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(json)
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          alert("Datos importados correctamente. La aplicación se recargará.");
+          window.location.reload();
+        } else {
+          alert("Error al importar: " + data.error);
+        }
+      } catch (err) {
+        alert("Error al procesar el archivo JSON.");
+      }
+    };
+    reader.readAsText(file);
   };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card title="Copia de Seguridad">
+          <div className="space-y-4">
+            <p className="text-sm text-slate-500">Extrae o importa toda la información de la base de datos.</p>
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={handleExport}
+                className="w-full bg-slate-800 text-white py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-slate-900 transition-all"
+              >
+                <Download size={18} /> Exportar Datos (JSON)
+              </button>
+              <div className="relative">
+                <input 
+                  type="file" 
+                  accept=".json" 
+                  onChange={handleImport}
+                  className="absolute inset-0 opacity-0 cursor-pointer" 
+                />
+                <button className="w-full border border-slate-200 text-slate-600 py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-slate-50 transition-all">
+                  <Upload size={18} /> Importar Datos (JSON)
+                </button>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <Card title="Configuración de GitHub">
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-500 uppercase">Usuario GitHub</label>
+              <input 
+                type="text"
+                value={credentials.username}
+                onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                placeholder="Tu usuario"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-500 uppercase">Token de Acceso (PAT)</label>
+              <input 
+                type="password"
+                value={credentials.token}
+                onChange={(e) => setCredentials(prev => ({ ...prev, token: e.target.value }))}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                placeholder="ghp_xxxxxxxxxxxx"
+              />
+            </div>
+          </div>
+        </Card>
+      </div>
+
       <Card title="Actualización del Sistema">
         <div className="space-y-6">
+          <div className="p-4 bg-amber-50 border border-amber-100 rounded-lg">
+            <p className="text-xs text-amber-800 flex items-center gap-2">
+              <AlertCircle size={14} /> 
+              La actualización solo descarga cambios en el código. Tus datos (base de datos y archivos subidos) no se verán afectados.
+            </p>
+          </div>
           <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-100">
             <div>
               <p className="text-sm text-slate-500">Versión Actual</p>
               <p className="text-2xl font-bold text-slate-800">{version?.current || '...'}</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-slate-500">Última Versión</p>
-              <p className="text-2xl font-bold text-indigo-600">{version?.latest || '...'}</p>
+              <p className="text-sm text-slate-500">Última Versión (GitHub)</p>
+              {version?.error ? (
+                <p className="text-xs text-rose-500 font-medium max-w-[150px] leading-tight">{version.error}</p>
+              ) : (
+                <p className="text-2xl font-bold text-indigo-600">{version?.latest || '...'}</p>
+              )}
             </div>
           </div>
 
           <div className="space-y-2">
-            <h4 className="font-semibold text-slate-700">Cambios en esta versión:</h4>
+            <h4 className="font-semibold text-slate-700">Últimos cambios en GitHub:</h4>
             <ul className="space-y-1">
-              {version?.changes.map((change, i) => (
+              {version?.changes?.map((change, i) => (
                 <li key={i} className="flex items-center gap-2 text-sm text-slate-600">
                   <ChevronRight size={14} className="text-indigo-400" /> {change}
                 </li>
               ))}
+              {(!version || !version.changes || version.changes.length === 0) && <li className="text-sm text-slate-400 italic">No hay cambios recientes detectados.</li>}
             </ul>
           </div>
 
@@ -2151,9 +2267,6 @@ const UpdateView = () => {
             >
               <RefreshCw size={18} className={updating ? "animate-spin" : ""} />
               {updating ? "Actualizando..." : "Actualizar Ahora"}
-            </button>
-            <button className="flex-1 border border-slate-200 text-slate-600 py-3 rounded-lg font-semibold hover:bg-slate-50 transition-all">
-              Volver a Versión Anterior
             </button>
           </div>
         </div>

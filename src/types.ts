@@ -174,4 +174,5 @@ export interface VersionInfo {
   current: string;
   latest: string;
   changes: string[];
+  error?: string;
 }
