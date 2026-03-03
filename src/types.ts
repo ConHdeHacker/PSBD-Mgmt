@@ -154,6 +154,22 @@ export interface WorkHour {
   project_name?: string;
 }
 
+export interface EconomicSummary {
+  id: number;
+  name: string;
+  total_costs: number;
+  total_sales: number;
+  projects: (Project & { total_costs: number; total_sales: number })[];
+}
+
+export interface WorkHoursSummary {
+  staff_name: string;
+  project_name: string;
+  total_hours: number;
+  total_cost: number;
+  total_sales: number;
+}
+
 export interface VersionInfo {
   current: string;
   latest: string;

@@ -1,20 +1,60 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# PSBD Management Tool
 
-# Run and deploy your AI Studio app
+Herramienta integral para la gestión de oportunidades, recruiting, staffing y finanzas.
 
-This contains everything you need to run your app locally.
+## Requisitos Previos
 
-View your app in AI Studio: https://ai.studio/apps/5fbe9620-4dfe-4cd9-8d07-b3589e15f640
+Para ejecutar esta herramienta en Windows 11, asegúrate de tener instalado:
 
-## Run Locally
+1.  **Node.js** (Versión 18 o superior): [Descargar aquí](https://nodejs.org/)
+2.  **Git** (Opcional, para clonar el repositorio): [Descargar aquí](https://git-scm.com/)
 
-**Prerequisites:**  Node.js
+## Instalación en Windows 11
 
+Sigue estos pasos para instalar y ejecutar la herramienta de forma sencilla:
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1.  **Descargar el código**:
+    Si tienes Git instalado, abre una terminal (PowerShell o CMD) y ejecuta:
+    ```bash
+    git clone <url-del-repositorio>
+    cd psbd-management
+    ```
+    Si no tienes Git, descarga el archivo ZIP del proyecto y extráelo en una carpeta.
+
+2.  **Instalar dependencias**:
+    Abre una terminal en la carpeta del proyecto y ejecuta:
+    ```bash
+    npm install
+    ```
+
+3.  **Ejecutar en modo desarrollo**:
+    Para probar la herramienta localmente:
+    ```bash
+    npm run dev
+    ```
+    La aplicación estará disponible en `http://localhost:3000`.
+
+4.  **Despliegue para producción**:
+    Si deseas generar una versión optimizada:
+    ```bash
+    npm run build
+    ```
+    Y luego inicia el servidor:
+    ```bash
+    npm start
+    ```
+
+## Estructura del Proyecto
+
+-   `server.ts`: Servidor Backend (Express + SQLite). Gestiona la base de datos y las APIs.
+-   `src/App.tsx`: Frontend principal (React + Tailwind). Contiene toda la lógica de la interfaz.
+-   `src/types.ts`: Definiciones de tipos TypeScript para asegurar la integridad de los datos.
+-   `psbd.db`: Base de datos SQLite (se crea automáticamente al iniciar).
+-   `uploads/`: Carpeta donde se guardan los CVs y documentos subidos.
+
+## Documentación de Módulos
+
+La herramienta incluye un apartado de **Documentación** integrado en el menú lateral izquierdo donde se detallan los flujos de trabajo recomendados para cada módulo (Oportunidades, Recruiting, Staffing, etc.).
+
+---
+Desarrollado para la gestión eficiente de unidades de negocio de ciberseguridad.

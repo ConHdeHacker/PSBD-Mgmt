@@ -1,3 +1,7 @@
+// --- Main Application Entry Point ---
+// This file contains the entire frontend logic, including routing (via state),
+// view components, and API integration.
+
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { 
@@ -19,7 +23,8 @@ import {
   Edit3,
   DollarSign,
   History,
-  Upload
+  Upload,
+  BookOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -36,7 +41,7 @@ import {
 } from 'recharts';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { Profile, Opportunity, Position, Candidate, Staff, Client, Project, WorkHour, VersionInfo, OpportunityHoursSummary } from './types';
+import { Profile, Opportunity, Position, Candidate, Staff, Client, Project, WorkHour, VersionInfo, OpportunityHoursSummary, EconomicSummary, WorkHoursSummary } from './types';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -72,6 +77,8 @@ const Card = ({ children, className, title }: { children: React.ReactNode, class
 
 // --- Views ---
 
+// --- Opportunities Module ---
+// Manages sales leads, RFPs, and pre-sales efforts.
 const OpportunitiesView = ({ profileId }: { profileId: string }) => {
   const [opps, setOpps] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -703,6 +710,8 @@ const Modal = ({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
   );
 };
 
+// --- Recruiting Module ---
+// Manages job positions and candidate pipelines.
 const RecruitingView = ({ profileId }: { profileId: string }) => {
   const [subTab, setSubTab] = useState<'dashboard' | 'posiciones' | 'staffing' | 'becarios'>('dashboard');
   const [positions, setPositions] = useState<Position[]>([]);
@@ -1152,6 +1161,8 @@ const RecruitingView = ({ profileId }: { profileId: string }) => {
   );
 };
 
+// --- Staffing Module ---
+// Manages internal employee records, CVs, annual reviews, and vacations.
 const StaffingView = ({ profileId }: { profileId: string }) => {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [subTab, setSubTab] = useState<'dashboard' | 'integrantes'>('dashboard');
@@ -1515,6 +1526,8 @@ const StaffingView = ({ profileId }: { profileId: string }) => {
   );
 };
 
+// --- Clients & Projects Module ---
+// Manages client relationships and specific project definitions.
 const ClientsView = ({ profileId }: { profileId: string }) => {
   const [clients, setClients] = useState<Client[]>([]);
   const [subTab, setSubTab] = useState<'dashboard' | 'clientes' | 'proyectos'>('dashboard');
@@ -1716,27 +1729,117 @@ const ProjectList = ({ clientId }: { clientId: number }) => {
   );
 };
 
+// --- Work Hours Module ---
+// Tracks billable time for staff members on specific projects.
 const HoursView = ({ profileId }: { profileId: string }) => {
   const [hours, setHours] = useState<WorkHour[]>([]);
+  const [summary, setSummary] = useState<WorkHoursSummary[]>([]);
+  const [staff, setStaff] = useState<Staff[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [subTab, setSubTab] = useState<'dashboard' | 'gestion'>('dashboard');
+  const [showModal, setShowModal] = useState(false);
+
+  const fetchData = async () => {
+    const [hRes, sRes, stRes, cRes] = await Promise.all([
+      fetch(`/api/work-hours/${profileId}`),
+      fetch(`/api/work-hours-summary/${profileId}`),
+      fetch(`/api/staff/${profileId}`),
+      fetch(`/api/clients/${profileId}`)
+    ]);
+    setHours(await hRes.json());
+    setSummary(await sRes.json());
+    setStaff(await stRes.json());
+    setClients(await cRes.json());
+  };
 
   useEffect(() => {
-    fetch(`/api/work-hours/${profileId}`)
-      .then(res => res.json())
-      .then(setHours);
+    fetchData();
   }, [profileId]);
 
-  return (
+  const handleClientChange = async (clientId: string) => {
+    const res = await fetch(`/api/projects/${clientId}`);
+    setProjects(await res.json());
+  };
+
+  const handleAddHours = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+    await fetch('/api/work-hours', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    setShowModal(false);
+    fetchData();
+  };
+
+  const renderDashboard = () => (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-slate-800">Gestión de Horas / TLs</h2>
-        <button className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Horas Totales</p>
+          <p className="text-3xl font-bold mt-1 text-indigo-600">
+            {summary.reduce((acc, curr) => acc + curr.total_hours, 0).toFixed(1)}h
+          </p>
+        </Card>
+        <Card>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Coste Equipo</p>
+          <p className="text-3xl font-bold mt-1 text-slate-800">
+            {summary.reduce((acc, curr) => acc + curr.total_cost, 0).toLocaleString()}€
+          </p>
+        </Card>
+        <Card>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Beneficio Generado</p>
+          <p className="text-3xl font-bold mt-1 text-emerald-600">
+            {summary.reduce((acc, curr) => acc + (curr.total_sales - curr.total_cost), 0).toLocaleString()}€
+          </p>
+        </Card>
+      </div>
+
+      <Card title="Resumen por Persona y Proyecto">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase">Persona</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase">Proyecto</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase text-right">Horas</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase text-right">Coste</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase text-right">Beneficio</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {summary.map((s, i) => (
+                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-4 py-3 text-sm font-medium">{s.staff_name}</td>
+                  <td className="px-4 py-3 text-sm text-slate-600">{s.project_name}</td>
+                  <td className="px-4 py-3 text-sm text-right">{s.total_hours}h</td>
+                  <td className="px-4 py-3 text-sm text-right text-slate-500">{s.total_cost.toLocaleString()}€</td>
+                  <td className="px-4 py-3 text-sm text-right font-bold text-emerald-600">
+                    {(s.total_sales - s.total_cost).toLocaleString()}€
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
+  );
+
+  const renderGestion = () => (
+    <div className="space-y-6">
+      <div className="flex justify-end">
+        <button onClick={() => setShowModal(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors">
           <Plus size={18} /> Imputar Horas
         </button>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <table className="w-full text-left">
-          <thead className="bg-slate-50 border-bottom border-slate-200">
+          <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Persona</th>
               <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Proyecto</th>
@@ -1767,70 +1870,228 @@ const HoursView = ({ profileId }: { profileId: string }) => {
       </div>
     </div>
   );
-};
-
-const EconomicView = ({ profileId }: { profileId: string }) => {
-  const data = [
-    { name: 'Ene', gastos: 4000, beneficios: 2400 },
-    { name: 'Feb', gastos: 3000, beneficios: 1398 },
-    { name: 'Mar', gastos: 2000, beneficios: 9800 },
-    { name: 'Abr', gastos: 2780, beneficios: 3908 },
-    { name: 'May', gastos: 1890, beneficios: 4800 },
-    { name: 'Jun', gastos: 2390, beneficios: 3800 },
-  ];
 
   return (
+    <div className="space-y-8">
+      <div className="flex border-b border-slate-200">
+        {(['dashboard', 'gestion'] as const).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setSubTab(tab)}
+            className={cn(
+              "px-6 py-3 text-sm font-bold transition-all border-b-2 capitalize",
+              subTab === tab ? "border-indigo-600 text-indigo-600" : "border-transparent text-slate-400 hover:text-slate-600"
+            )}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {subTab === 'dashboard' ? renderDashboard() : renderGestion()}
+
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Imputar Horas">
+        <form onSubmit={handleAddHours} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase">Persona</label>
+              <select name="staff_id" required className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm bg-white">
+                <option value="">Seleccionar...</option>
+                {staff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase">Cliente</label>
+              <select onChange={(e) => handleClientChange(e.target.value)} required className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm bg-white">
+                <option value="">Seleccionar...</option>
+                {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase">Proyecto</label>
+              <select name="project_id" required className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm bg-white">
+                <option value="">Seleccionar...</option>
+                {projects.map(p => <option key={p.id} value={p.id}>{p.name} ({p.code})</option>)}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase">Fecha</label>
+              <input name="date" type="date" required className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase">Horas</label>
+              <input name="hours" type="number" step="0.5" required className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase">Coste/Hora (€)</label>
+              <input name="cost_per_hour" type="number" step="0.01" required className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
+            </div>
+            <div className="col-span-2 space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase">Venta/Hora (€)</label>
+              <input name="sales_per_hour" type="number" step="0.01" required className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" />
+            </div>
+          </div>
+          <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors">
+            Registrar Horas
+          </button>
+        </form>
+      </Modal>
+    </div>
+  );
+};
+
+// --- Economic View ---
+// Aggregates data from projects and work hours to provide a financial overview.
+const EconomicView = ({ profileId }: { profileId: string }) => {
+  const [summary, setSummary] = useState<EconomicSummary[]>([]);
+  const [subTab, setSubTab] = useState<'dashboard' | 'gestion'>('dashboard');
+
+  const fetchData = async () => {
+    const res = await fetch(`/api/economic-summary/${profileId}`);
+    const data = await res.json();
+    setSummary(data);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [profileId]);
+
+  const chartData = summary.map(s => ({
+    name: s.name,
+    gastos: s.total_costs,
+    beneficios: s.total_sales - s.total_costs
+  }));
+
+  const renderDashboard = () => (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-slate-800">Gestión Económica</h2>
-      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Gastos Totales</p>
+          <p className="text-3xl font-bold mt-1 text-slate-800">
+            {summary.reduce((acc, curr) => acc + curr.total_costs, 0).toLocaleString()}€
+          </p>
+        </Card>
+        <Card>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Ventas Totales</p>
+          <p className="text-3xl font-bold mt-1 text-indigo-600">
+            {summary.reduce((acc, curr) => acc + curr.total_sales, 0).toLocaleString()}€
+          </p>
+        </Card>
+        <Card>
+          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Margen Neto</p>
+          <p className="text-3xl font-bold mt-1 text-emerald-600">
+            {summary.reduce((acc, curr) => acc + (curr.total_sales - curr.total_costs), 0).toLocaleString()}€
+          </p>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card title="Resumen General" className="lg:col-span-2">
+        <Card title="Balance por Cliente" className="lg:col-span-2">
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data}>
+              <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
                 <Tooltip 
                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
-                <Bar dataKey="beneficios" fill="#6366f1" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="gastos" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="beneficios" name="Beneficio" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="gastos" name="Gasto" fill="#ef4444" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Card>
         
-        <Card title="Distribución de Costes">
+        <Card title="Distribución de Ventas">
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={[
-                    { name: 'Personal', value: 70 },
-                    { name: 'Infraestructura', value: 20 },
-                    { name: 'Otros', value: 10 },
-                  ]}
+                  data={summary.map(s => ({ name: s.name, value: s.total_sales }))}
                   innerRadius={60}
                   outerRadius={80}
                   paddingAngle={5}
                   dataKey="value"
                 >
-                  <Cell fill="#6366f1" />
-                  <Cell fill="#818cf8" />
-                  <Cell fill="#c7d2fe" />
+                  {summary.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={['#6366f1', '#818cf8', '#c7d2fe', '#4f46e5'][index % 4]} />
+                  ))}
                 </Pie>
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
-            <div className="flex justify-center gap-4 text-xs mt-4">
-              <div className="flex items-center gap-1"><div className="w-3 h-3 bg-indigo-500 rounded-full"></div> Personal</div>
-              <div className="flex items-center gap-1"><div className="w-3 h-3 bg-indigo-400 rounded-full"></div> Infra</div>
-              <div className="flex items-center gap-1"><div className="w-3 h-3 bg-indigo-200 rounded-full"></div> Otros</div>
-            </div>
           </div>
         </Card>
       </div>
+    </div>
+  );
+
+  const renderGestion = () => (
+    <div className="space-y-8">
+      {summary.map(client => (
+        <div key={client.id} className="space-y-4">
+          <div className="flex justify-between items-end border-b border-slate-200 pb-2">
+            <h3 className="text-xl font-bold text-slate-800">{client.name}</h3>
+            <div className="text-right">
+              <p className="text-[10px] font-bold text-slate-400 uppercase">Balance Cliente</p>
+              <p className={cn("text-lg font-bold", (client.total_sales - client.total_costs) >= 0 ? "text-emerald-600" : "text-red-600")}>
+                {(client.total_sales - client.total_costs).toLocaleString()}€
+              </p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {client.projects.map(project => (
+              <Card key={project.id} className="relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-2">
+                  <span className="text-[10px] font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-500">{project.code}</span>
+                </div>
+                <p className="font-bold text-slate-800 mb-4">{project.name}</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">Gastos Totales:</span>
+                    <span className="font-bold text-red-600">{project.total_costs.toLocaleString()}€</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-500">Ventas Totales:</span>
+                    <span className="font-bold text-indigo-600">{project.total_sales.toLocaleString()}€</span>
+                  </div>
+                  <div className="pt-2 border-t border-slate-100 flex justify-between text-sm">
+                    <span className="font-bold text-slate-700">Margen:</span>
+                    <span className={cn("font-bold", (project.total_sales - project.total_costs) >= 0 ? "text-emerald-600" : "text-red-600")}>
+                      {(project.total_sales - project.total_costs).toLocaleString()}€
+                    </span>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="space-y-8">
+      <div className="flex border-b border-slate-200">
+        {(['dashboard', 'gestion'] as const).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setSubTab(tab)}
+            className={cn(
+              "px-6 py-3 text-sm font-bold transition-all border-b-2 capitalize",
+              subTab === tab ? "border-indigo-600 text-indigo-600" : "border-transparent text-slate-400 hover:text-slate-600"
+            )}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      <h2 className="text-2xl font-bold text-slate-800">Gestión Económica</h2>
+      
+      {subTab === 'dashboard' ? renderDashboard() : renderGestion()}
     </div>
   );
 };
@@ -1913,6 +2174,61 @@ const UpdateView = () => {
   );
 };
 
+// --- Documentation View ---
+// This component provides extensive documentation on how to use each module of the tool.
+
+const DocumentationView = () => {
+  const sections = [
+    {
+      title: "Introducción",
+      content: "PSBD Management es una herramienta integral para la gestión de oportunidades de negocio, reclutamiento, personal, clientes y finanzas. Está diseñada para centralizar el flujo de trabajo desde la detección de una oportunidad hasta la ejecución del proyecto y el seguimiento de rentabilidad."
+    },
+    {
+      title: "Módulo de Oportunidades",
+      content: "Este módulo permite registrar y seguir licitaciones o leads de ventas.\n\n**Flujo recomendado:**\n1. Crear una nueva oportunidad con los datos básicos del cliente y fechas clave (RFP).\n2. En la vista de gestión, subir los documentos oficiales (RFP, pliegos).\n3. Definir los requerimientos de personal (Perfiles) y herramientas necesarias en la sección Económica.\n4. Registrar las horas dedicadas por el equipo de preventa para conocer el coste de adquisición.\n5. Cambiar el estado a 'Ganada' o 'Perdida' según el resultado."
+    },
+    {
+      title: "Módulo de Recruiting",
+      content: "Gestión de vacantes y candidatos.\n\n**Flujo recomendado:**\n1. Crear una 'Posición' (vacante) detallando requerimientos, banda salarial y estado.\n2. Añadir candidatos a cada posición.\n3. Gestionar el estado del candidato (Entrevista, Oferta, Contratado).\n4. Subir el CV del candidato para tenerlo centralizado."
+    },
+    {
+      title: "Módulo de Staffing",
+      content: "Gestión del equipo interno.\n\n**Flujo recomendado:**\n1. Dar de alta a los integrantes del equipo con sus datos contractuales y CV.\n2. En la ficha de cada empleado, gestionar sus objetivos anuales y formaciones.\n3. Registrar los periodos de vacaciones para llevar un control de días disfrutados y pendientes."
+    },
+    {
+      title: "Módulo de Clientes y Proyectos",
+      content: "Centralización de la relación con clientes y ejecución de trabajos.\n\n**Flujo recomendado:**\n1. Crear un Cliente.\n2. Dentro del cliente, crear Proyectos específicos asignando un código, presupuesto de costes y precio de venta.\n3. Estos proyectos serán los que aparezcan en el módulo de imputación de horas."
+    },
+    {
+      title: "Módulo de Horas / TLs",
+      content: "Seguimiento del tiempo dedicado a proyectos facturables.\n\n**Flujo recomendado:**\n1. Seleccionar la persona y el proyecto.\n2. Introducir las horas trabajadas y la fecha.\n3. Definir el coste por hora (salario) y venta por hora (tarifa cliente) para calcular el beneficio real generado por esa jornada."
+    },
+    {
+      title: "Gestión Económica",
+      content: "Dashboard financiero global.\n\nEste módulo agrega automáticamente los datos de todos los proyectos y horas imputadas para mostrar:\n- Gastos totales (Costes de proyecto + Costes de personal por horas).\n- Ventas totales (Presupuestos + Ventas por horas).\n- Margen neto real por cliente y proyecto."
+    }
+  ];
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-8 pb-20">
+      <div className="space-y-2">
+        <h2 className="text-3xl font-bold text-slate-800">Guía de Uso y Documentación</h2>
+        <p className="text-slate-500">Aprende a sacar el máximo partido a la herramienta PSBD Management.</p>
+      </div>
+
+      <div className="space-y-6">
+        {sections.map((section, i) => (
+          <Card key={i} title={section.title}>
+            <div className="prose prose-slate max-w-none prose-sm">
+              <ReactMarkdown>{section.content}</ReactMarkdown>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // --- Main App ---
 
 export default function App() {
@@ -1937,6 +2253,7 @@ export default function App() {
       case 'clientes': return <ClientsView profileId={activeProfile} />;
       case 'economica': return <EconomicView profileId={activeProfile} />;
       case 'horas': return <HoursView profileId={activeProfile} />;
+      case 'docs': return <DocumentationView />;
       case 'update': return <UpdateView />;
       default: return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1983,6 +2300,7 @@ export default function App() {
           <SidebarItem icon={Building2} label="Clientes/Proyectos" active={activeTab === 'clientes'} onClick={() => setActiveTab('clientes')} />
           <SidebarItem icon={TrendingUp} label="Gestión Económica" active={activeTab === 'economica'} onClick={() => setActiveTab('economica')} />
           <SidebarItem icon={Clock} label="Horas/TLs" active={activeTab === 'horas'} onClick={() => setActiveTab('horas')} />
+          <SidebarItem icon={BookOpen} label="Documentación" active={activeTab === 'docs'} onClick={() => setActiveTab('docs')} />
         </nav>
 
         <div className="p-4 border-top border-slate-100">

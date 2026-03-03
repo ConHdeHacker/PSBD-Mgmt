@@ -6,15 +6,30 @@ import fs from 'fs';
 import multer from 'multer';
 
 const PORT = 3000;
-const db = new Database('psbd.db');
+const DB_PATH = 'psbd.db';
 
-// Initialize Database
+// --- Database Initialization and Schema Definition ---
+// Check if the database file exists and is valid. If not, we handle it gracefully.
+if (fs.existsSync(DB_PATH)) {
+  try {
+    const checkDb = new Database(DB_PATH);
+    checkDb.close();
+  } catch (err) {
+    console.error('Database file is corrupted or not a valid SQLite database. Recreating...');
+    fs.unlinkSync(DB_PATH);
+  }
+}
+
+const db = new Database(DB_PATH);
+
 db.exec(`
+  -- Profiles: Different business units or departments (e.g., Offensive, Architecture)
   CREATE TABLE IF NOT EXISTS profiles (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL
   );
 
+  -- Opportunities: Sales leads and RFP tracking
   CREATE TABLE IF NOT EXISTS opportunities (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     profile_id TEXT,
@@ -28,6 +43,7 @@ db.exec(`
     FOREIGN KEY(profile_id) REFERENCES profiles(id)
   );
 
+  -- Opportunity Profiles: Staffing requirements for a specific opportunity
   CREATE TABLE IF NOT EXISTS opportunity_profiles (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     opportunity_id INTEGER,
@@ -38,6 +54,7 @@ db.exec(`
     FOREIGN KEY(opportunity_id) REFERENCES opportunities(id)
   );
 
+  -- Opportunity Tools: Software or hardware costs for a specific opportunity
   CREATE TABLE IF NOT EXISTS opportunity_tools (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     opportunity_id INTEGER,
@@ -46,6 +63,7 @@ db.exec(`
     FOREIGN KEY(opportunity_id) REFERENCES opportunities(id)
   );
 
+  -- Opportunity Hours Logs: Time tracking for pre-sales work on opportunities
   CREATE TABLE IF NOT EXISTS opportunity_hours_logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     opportunity_id INTEGER,
@@ -55,6 +73,7 @@ db.exec(`
     FOREIGN KEY(opportunity_id) REFERENCES opportunities(id)
   );
 
+  -- Documents: Files associated with opportunities (RFPs, Technical Offers, etc.)
   CREATE TABLE IF NOT EXISTS documents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     opportunity_id INTEGER,
@@ -65,6 +84,7 @@ db.exec(`
     FOREIGN KEY(opportunity_id) REFERENCES opportunities(id)
   );
 
+  -- Positions: Job openings for recruitment
   CREATE TABLE IF NOT EXISTS positions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     profile_id TEXT,
@@ -84,6 +104,7 @@ db.exec(`
     FOREIGN KEY(profile_id) REFERENCES profiles(id)
   );
 
+  -- Candidates: People applying for positions
   CREATE TABLE IF NOT EXISTS candidates (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     position_id INTEGER,
@@ -103,6 +124,7 @@ db.exec(`
     FOREIGN KEY(position_id) REFERENCES positions(id)
   );
 
+  -- Staff: Employees of the company
   CREATE TABLE IF NOT EXISTS staff (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     profile_id TEXT,
@@ -117,6 +139,7 @@ db.exec(`
     FOREIGN KEY(profile_id) REFERENCES profiles(id)
   );
 
+  -- Staff Annual: Objectives, training, and feedback for employees
   CREATE TABLE IF NOT EXISTS staff_annual (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     staff_id INTEGER,
@@ -125,6 +148,7 @@ db.exec(`
     FOREIGN KEY(staff_id) REFERENCES staff(id)
   );
 
+  -- Vacations: Tracking leave for staff members
   CREATE TABLE IF NOT EXISTS vacations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     staff_id INTEGER,
@@ -134,6 +158,7 @@ db.exec(`
     FOREIGN KEY(staff_id) REFERENCES staff(id)
   );
 
+  -- Clients: Companies we work with
   CREATE TABLE IF NOT EXISTS clients (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     profile_id TEXT,
@@ -142,6 +167,7 @@ db.exec(`
     FOREIGN KEY(profile_id) REFERENCES profiles(id)
   );
 
+  -- Projects: Specific work engagements for clients
   CREATE TABLE IF NOT EXISTS projects (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     client_id INTEGER,
@@ -153,6 +179,7 @@ db.exec(`
     FOREIGN KEY(client_id) REFERENCES clients(id)
   );
 
+  -- Work Hours: Time tracking for billable work on projects
   CREATE TABLE IF NOT EXISTS work_hours (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     staff_id INTEGER,
@@ -242,18 +269,23 @@ async function startServer() {
   const app = express();
   app.use(express.json());
 
-  // API Routes
+  // --- API Routes Implementation ---
+
+  // Profiles: Fetch all business units
   app.get('/api/profiles', (req, res) => {
     const profiles = db.prepare('SELECT * FROM profiles').all();
     res.json(profiles);
   });
 
-  // Opportunities
+  // --- Opportunities Module Endpoints ---
+  
+  // List opportunities for a profile
   app.get('/api/opportunities/:profileId', (req, res) => {
     const opps = db.prepare('SELECT * FROM opportunities WHERE profile_id = ?').all(req.params.profileId);
     res.json(opps);
   });
 
+  // Get aggregated hours for opportunities dashboard
   app.get('/api/opportunities-hours-summary/:profileId', (req, res) => {
     const summary = db.prepare(`
       SELECT o.client_name, h.staff_name, SUM(h.hours) as total_hours
@@ -265,6 +297,7 @@ async function startServer() {
     res.json(summary);
   });
 
+  // Get full details of a single opportunity including nested data
   app.get('/api/opportunity/:id', (req, res) => {
     const opp = db.prepare('SELECT * FROM opportunities WHERE id = ?').get(req.params.id);
     const docs = db.prepare('SELECT * FROM documents WHERE opportunity_id = ?').all(req.params.id);
@@ -274,6 +307,7 @@ async function startServer() {
     res.json({ ...opp, documents: docs, profiles, tools, hours });
   });
 
+  // Create a new opportunity
   app.post('/api/opportunities', (req, res) => {
     const { profile_id, client_name, rfp_date, questions_date, sector, owner, status, description } = req.body;
     const info = db.prepare(`
@@ -283,6 +317,7 @@ async function startServer() {
     res.json({ id: info.lastInsertRowid });
   });
 
+  // Update opportunity fields
   app.patch('/api/opportunities/:id', (req, res) => {
     const { id } = req.params;
     const updates = req.body;
@@ -294,6 +329,7 @@ async function startServer() {
     res.json({ success: true });
   });
 
+  // Add staffing requirement to an opportunity
   app.post('/api/opportunity-profile', (req, res) => {
     const { opportunity_id, profile_title, csr, quantity, cost } = req.body;
     const info = db.prepare(`
@@ -303,6 +339,7 @@ async function startServer() {
     res.json({ id: info.lastInsertRowid });
   });
 
+  // Add tool cost to an opportunity
   app.post('/api/opportunity-tool', (req, res) => {
     const { opportunity_id, tool_name, cost } = req.body;
     const info = db.prepare(`
@@ -312,6 +349,7 @@ async function startServer() {
     res.json({ id: info.lastInsertRowid });
   });
 
+  // Log pre-sales hours for an opportunity
   app.post('/api/opportunity-hours', (req, res) => {
     const { opportunity_id, staff_name, hours, date } = req.body;
     const info = db.prepare(`
@@ -321,6 +359,7 @@ async function startServer() {
     res.json({ id: info.lastInsertRowid });
   });
 
+  // Link a document to an opportunity
   app.post('/api/opportunity-documents', (req, res) => {
     const { opportunity_id, type, file_name, file_path, mime_type } = req.body;
     const info = db.prepare(`
@@ -330,12 +369,15 @@ async function startServer() {
     res.json({ id: info.lastInsertRowid });
   });
 
-  // Recruiting
+  // --- Recruiting Module Endpoints ---
+
+  // List job positions for a profile
   app.get('/api/positions/:profileId', (req, res) => {
     const positions = db.prepare('SELECT * FROM positions WHERE profile_id = ?').all(req.params.profileId);
     res.json(positions);
   });
 
+  // Create a new job position
   app.post('/api/positions', (req, res) => {
     const { 
       profile_id, title, description, status, everjob_code, ciber_ongoing, 
@@ -367,11 +409,13 @@ async function startServer() {
     res.json({ id: info.lastInsertRowid });
   });
 
+  // List candidates for a specific position
   app.get('/api/candidates/:positionId', (req, res) => {
     const candidates = db.prepare('SELECT * FROM candidates WHERE position_id = ?').all(req.params.positionId);
     res.json(candidates);
   });
 
+  // List all candidates for a profile (across all positions)
   app.get('/api/candidates-by-profile/:profileId', (req, res) => {
     const candidates = db.prepare(`
       SELECT c.*, p.title as position_title 
@@ -382,6 +426,7 @@ async function startServer() {
     res.json(candidates);
   });
 
+  // Register a new candidate
   app.post('/api/candidates', (req, res) => {
     const { 
       position_id, name, type, status, notes, years_experience, salary_band, 
@@ -399,6 +444,7 @@ async function startServer() {
     res.json({ id: info.lastInsertRowid });
   });
 
+  // Update candidate status or notes
   app.patch('/api/candidates/:id', (req, res) => {
     const { id } = req.params;
     const updates = req.body;
@@ -410,12 +456,15 @@ async function startServer() {
     res.json({ success: true });
   });
 
-  // Staff
+  // --- Staffing Module Endpoints ---
+
+  // List all staff members for a profile
   app.get('/api/staff/:profileId', (req, res) => {
     const staff = db.prepare('SELECT * FROM staff WHERE profile_id = ?').all(req.params.profileId);
     res.json(staff);
   });
 
+  // Get full employee record (personal, annual reviews, vacations)
   app.get('/api/staff-details/:id', (req, res) => {
     const member = db.prepare('SELECT * FROM staff WHERE id = ?').get(req.params.id);
     const annual = db.prepare('SELECT * FROM staff_annual WHERE staff_id = ?').all(req.params.id);
@@ -423,18 +472,21 @@ async function startServer() {
     res.json({ ...member, annual, vacations });
   });
 
+  // Add an annual objective or feedback record
   app.post('/api/staff-annual', (req, res) => {
     const { staff_id, type, content } = req.body;
     const info = db.prepare('INSERT INTO staff_annual (staff_id, type, content) VALUES (?, ?, ?)').run(staff_id, type, content);
     res.json({ id: info.lastInsertRowid });
   });
 
+  // Register a vacation period
   app.post('/api/staff-vacations', (req, res) => {
     const { staff_id, start_date, end_date, days } = req.body;
     const info = db.prepare('INSERT INTO vacations (staff_id, start_date, end_date, days) VALUES (?, ?, ?, ?)').run(staff_id, start_date, end_date, days);
     res.json({ id: info.lastInsertRowid });
   });
 
+  // Create a new staff member with CV upload
   app.post('/api/staff', upload.single('cv'), (req: any, res) => {
     const { profile_id, name, email, employee_number, csr, seniority_date, salary_profile, category_band } = req.body;
     const cv_path = req.file ? req.file.path : null;
@@ -445,32 +497,38 @@ async function startServer() {
     res.json({ id: info.lastInsertRowid });
   });
 
-  // Clients & Projects
+  // --- Clients & Projects Module Endpoints ---
+
+  // List clients for a profile
   app.get('/api/clients/:profileId', (req, res) => {
     const clients = db.prepare('SELECT * FROM clients WHERE profile_id = ?').all(req.params.profileId);
     res.json(clients);
   });
 
+  // Register a new client
   app.post('/api/clients', (req, res) => {
     const { profile_id, name, info } = req.body;
     const result = db.prepare('INSERT INTO clients (profile_id, name, info) VALUES (?, ?, ?)').run(profile_id, name, info);
     res.json({ id: result.lastInsertRowid });
   });
 
+  // List projects for a specific client
   app.get('/api/projects/:clientId', (req, res) => {
     const projects = db.prepare('SELECT * FROM projects WHERE client_id = ?').all(req.params.clientId);
     res.json(projects);
   });
 
+  // Create a new project for a client
   app.post('/api/projects', (req, res) => {
     const { client_id, name, code, description, costs, sales_price } = req.body;
     const result = db.prepare('INSERT INTO projects (client_id, name, code, description, costs, sales_price) VALUES (?, ?, ?, ?, ?, ?)').run(client_id, name, code, description, costs, sales_price);
     res.json({ id: result.lastInsertRowid });
   });
 
-  // Work Hours
+  // --- Work Hours & Economics Endpoints ---
+
+  // List all work hours logs for a profile
   app.get('/api/work-hours/:profileId', (req, res) => {
-    // Join with staff and projects to get names
     const hours = db.prepare(`
       SELECT wh.*, s.name as staff_name, p.name as project_name
       FROM work_hours wh
@@ -481,6 +539,7 @@ async function startServer() {
     res.json(hours);
   });
 
+  // Log billable hours on a project
   app.post('/api/work-hours', (req, res) => {
     const { staff_id, project_id, date, hours, cost_per_hour, sales_per_hour } = req.body;
     const result = db.prepare(`
@@ -490,7 +549,58 @@ async function startServer() {
     res.json({ id: result.lastInsertRowid });
   });
 
-  // File Uploads
+  // Aggregated economic summary (costs vs sales) for all clients/projects
+  app.get('/api/economic-summary/:profileId', (req, res) => {
+    const clients = db.prepare('SELECT * FROM clients WHERE profile_id = ?').all(req.params.profileId);
+    const summary = clients.map(client => {
+      const projects = db.prepare('SELECT * FROM projects WHERE client_id = ?').all(client.id);
+      const clientCosts = projects.reduce((acc, p) => acc + p.costs, 0);
+      const clientSales = projects.reduce((acc, p) => acc + p.sales_price, 0);
+      
+      const hoursData = db.prepare(`
+        SELECT SUM(hours * cost_per_hour) as hours_cost, SUM(hours * sales_per_hour) as hours_sales
+        FROM work_hours
+        WHERE project_id IN (SELECT id FROM projects WHERE client_id = ?)
+      `).get(client.id);
+
+      return {
+        id: client.id,
+        name: client.name,
+        total_costs: clientCosts + (hoursData.hours_cost || 0),
+        total_sales: clientSales + (hoursData.hours_sales || 0),
+        projects: projects.map(p => {
+          const p_hours = db.prepare(`
+            SELECT SUM(hours * cost_per_hour) as h_cost, SUM(hours * sales_per_hour) as h_sales
+            FROM work_hours WHERE project_id = ?
+          `).get(p.id);
+          return {
+            ...p,
+            total_costs: p.costs + (p_hours.h_cost || 0),
+            total_sales: p.sales_price + (p_hours.h_sales || 0)
+          };
+        })
+      };
+    });
+    res.json(summary);
+  });
+
+  // Aggregated work hours summary for the dashboard
+  app.get('/api/work-hours-summary/:profileId', (req, res) => {
+    const summary = db.prepare(`
+      SELECT s.name as staff_name, p.name as project_name, 
+             SUM(wh.hours) as total_hours,
+             SUM(wh.hours * wh.cost_per_hour) as total_cost,
+             SUM(wh.hours * wh.sales_per_hour) as total_sales
+      FROM work_hours wh
+      JOIN staff s ON wh.staff_id = s.id
+      JOIN projects p ON wh.project_id = p.id
+      WHERE s.profile_id = ?
+      GROUP BY wh.staff_id, wh.project_id
+    `).all(req.params.profileId);
+    res.json(summary);
+  });
+
+  // Generic file upload endpoint
   app.post('/api/upload', upload.single('file'), (req: any, res) => {
     if (!req.file) return res.status(400).send('No file uploaded.');
     res.json({
