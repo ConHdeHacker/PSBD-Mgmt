@@ -502,7 +502,11 @@ async function startServer() {
   // List clients for a profile
   app.get('/api/clients/:profileId', (req, res) => {
     const clients = db.prepare('SELECT * FROM clients WHERE profile_id = ?').all(req.params.profileId);
-    res.json(clients);
+    const clientsWithProjects = clients.map(client => {
+      const projects = db.prepare('SELECT * FROM projects WHERE client_id = ?').all(client.id);
+      return { ...client, projects };
+    });
+    res.json(clientsWithProjects);
   });
 
   // Register a new client

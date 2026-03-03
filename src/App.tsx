@@ -24,7 +24,9 @@ import {
   DollarSign,
   History,
   Upload,
-  BookOpen
+  BookOpen,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -56,7 +58,7 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: any, label:
       "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
       active 
         ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" 
-        : "text-slate-600 hover:bg-slate-100"
+        : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
     )}
   >
     <Icon size={20} />
@@ -65,10 +67,10 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: any, label:
 );
 
 const Card = ({ children, className, title }: { children: React.ReactNode, className?: string, title?: string, key?: any }) => (
-  <div className={cn("bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden", className)}>
+  <div className={cn("bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden", className)}>
     {title && (
-      <div className="px-6 py-4 border-bottom border-slate-100 bg-slate-50/50">
-        <h3 className="font-semibold text-slate-800">{title}</h3>
+      <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+        <h3 className="font-semibold text-slate-800 dark:text-slate-100">{title}</h3>
       </div>
     )}
     <div className="p-6">{children}</div>
@@ -214,10 +216,10 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
 
   const renderDashboard = () => {
     const stats = [
-      { label: 'En Licitación', value: opps.filter(o => o.status === 'En licitacion').length, color: 'text-blue-600' },
-      { label: 'Ganadas', value: opps.filter(o => o.status === 'Ganada').length, color: 'text-emerald-600' },
-      { label: 'Perdidas', value: opps.filter(o => o.status === 'Perdida').length, color: 'text-rose-600' },
-      { label: 'Going Review', value: opps.filter(o => o.status === 'Going Review').length, color: 'text-amber-600' },
+      { label: 'En Licitación', value: opps.filter(o => o.status === 'En licitacion').length, color: 'text-blue-600 dark:text-blue-400' },
+      { label: 'Ganadas', value: opps.filter(o => o.status === 'Ganada').length, color: 'text-emerald-600 dark:text-emerald-400' },
+      { label: 'Perdidas', value: opps.filter(o => o.status === 'Perdida').length, color: 'text-rose-600 dark:text-rose-400' },
+      { label: 'Going Review', value: opps.filter(o => o.status === 'Going Review').length, color: 'text-amber-600 dark:text-amber-400' },
     ];
 
     return (
@@ -225,7 +227,7 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {stats.map(s => (
             <Card key={s.label}>
-              <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">{s.label}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">{s.label}</p>
               <p className={cn("text-3xl font-bold mt-1", s.color)}>{s.value}</p>
             </Card>
           ))}
@@ -235,10 +237,13 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="label" axisLine={false} tickLine={false} />
-                <YAxis axisLine={false} tickLine={false} />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" className="dark:stroke-slate-800" />
+                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }}
+                  itemStyle={{ color: '#f8fafc' }}
+                />
                 <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -248,24 +253,24 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
         <Card title="Horas Totales por Persona y Oportunidad">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="bg-slate-50 border-b border-slate-200">
+              <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
                 <tr>
-                  <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase">Oportunidad (Cliente)</th>
-                  <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase">Persona</th>
-                  <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase text-right">Total Horas</th>
+                  <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Oportunidad (Cliente)</th>
+                  <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Persona</th>
+                  <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase text-right">Total Horas</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {hoursSummary.map((item, idx) => (
                   <tr key={idx}>
-                    <td className="px-4 py-3 text-sm font-medium">{item.client_name}</td>
-                    <td className="px-4 py-3 text-sm text-slate-600">{item.staff_name}</td>
-                    <td className="px-4 py-3 text-sm text-indigo-600 font-bold text-right">{item.total_hours}h</td>
+                    <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-slate-200">{item.client_name}</td>
+                    <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{item.staff_name}</td>
+                    <td className="px-4 py-3 text-sm text-indigo-600 dark:text-indigo-400 font-bold text-right">{item.total_hours}h</td>
                   </tr>
                 ))}
                 {hoursSummary.length === 0 && (
                   <tr>
-                    <td colSpan={3} className="px-4 py-8 text-center text-slate-400 italic text-sm">No hay registros de horas aún.</td>
+                    <td colSpan={3} className="px-4 py-8 text-center text-slate-400 dark:text-slate-500 italic text-sm">No hay registros de horas aún.</td>
                   </tr>
                 )}
               </tbody>
@@ -279,7 +284,7 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
   const renderListado = () => (
     <div className="space-y-6">
       <div className="flex justify-end items-center">
-        <button onClick={() => setShowNewModal(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors">
+        <button onClick={() => setShowNewModal(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 dark:shadow-none">
           <Plus size={18} /> Nueva Oportunidad
         </button>
       </div>
@@ -289,25 +294,25 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
           <Card key={opp.id} title={opp.client_name}>
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Estado:</span>
+                <span className="text-slate-500 dark:text-slate-400">Estado:</span>
                 <span className={cn("font-bold px-2 py-0.5 rounded-full text-[10px] uppercase", 
-                  opp.status === 'Ganada' ? "bg-emerald-100 text-emerald-700" :
-                  opp.status === 'Perdida' ? "bg-rose-100 text-rose-700" :
-                  "bg-blue-100 text-blue-700"
+                  opp.status === 'Ganada' ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :
+                  opp.status === 'Perdida' ? "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400" :
+                  "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
                 )}>{opp.status}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">RFP:</span>
-                <span className="font-medium">{opp.rfp_date}</span>
+                <span className="text-slate-500 dark:text-slate-400">RFP:</span>
+                <span className="font-medium text-slate-800 dark:text-slate-200">{opp.rfp_date}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Sector:</span>
-                <span className="font-medium">{opp.sector}</span>
+                <span className="text-slate-500 dark:text-slate-400">Sector:</span>
+                <span className="font-medium text-slate-800 dark:text-slate-200">{opp.sector}</span>
               </div>
               <div className="pt-4 flex gap-2">
                 <button 
                   onClick={() => setSelectedOppId(opp.id)}
-                  className="flex-1 text-xs bg-indigo-50 text-indigo-700 py-2 rounded-lg font-bold hover:bg-indigo-100 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 text-xs bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 py-2 rounded-lg font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors flex items-center justify-center gap-2"
                 >
                   <Edit3 size={14} /> Gestionar
                 </button>
@@ -324,10 +329,10 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <button onClick={() => setSelectedOppId(null)} className="text-slate-400 hover:text-slate-600">
+          <button onClick={() => setSelectedOppId(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
             <Plus className="rotate-45" size={24} />
           </button>
-          <h2 className="text-2xl font-bold text-slate-800">Gestionar: {selectedOpp.client_name}</h2>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Gestionar: {selectedOpp.client_name}</h2>
           <div className="ml-auto flex gap-2">
             {['requirements', 'technical', 'economic', 'hours'].map((s: any) => (
               <button 
@@ -335,7 +340,9 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
                 onClick={() => setEditSection(s)}
                 className={cn(
                   "px-4 py-2 rounded-lg text-sm font-bold transition-all",
-                  editSection === s ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                  editSection === s 
+                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none" 
+                    : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
                 )}
               >
                 {s === 'requirements' && 'Requerimientos'}
@@ -354,28 +361,28 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
                 <Card title="Documentos de Requerimientos">
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-indigo-400 transition-colors cursor-pointer relative">
-                        <Upload size={24} className="text-slate-400" />
-                        <span className="text-xs font-bold text-slate-500 uppercase">Subir RFP Oficial</span>
+                      <div className="p-4 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors cursor-pointer relative">
+                        <Upload size={24} className="text-slate-400 dark:text-slate-500" />
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Subir RFP Oficial</span>
                         <input type="file" onChange={(e) => handleFileUpload(e, 'RFP')} className="absolute inset-0 opacity-0 cursor-pointer" />
                       </div>
-                      <div className="p-4 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-indigo-400 transition-colors cursor-pointer relative">
-                        <Upload size={24} className="text-slate-400" />
-                        <span className="text-xs font-bold text-slate-500 uppercase">Añadir Documentos Adicionales</span>
+                      <div className="p-4 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors cursor-pointer relative">
+                        <Upload size={24} className="text-slate-400 dark:text-slate-500" />
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Añadir Documentos Adicionales</span>
                         <input type="file" multiple onChange={(e) => handleFileUpload(e, 'ADDITIONAL')} className="absolute inset-0 opacity-0 cursor-pointer" />
                       </div>
                     </div>
                     <div className="space-y-2">
                       {selectedOpp.documents?.filter(d => d.type !== 'TECHNICAL_OFFER').map(doc => (
-                        <div key={doc.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                        <div key={doc.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
                           <div className="flex items-center gap-3">
-                            <FileText size={18} className="text-indigo-500" />
+                            <FileText size={18} className="text-indigo-500 dark:text-indigo-400" />
                             <div>
-                              <p className="text-sm font-bold text-slate-800">{doc.file_name}</p>
-                              <p className="text-[10px] text-slate-400 uppercase font-bold">{doc.type}</p>
+                              <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{doc.file_name}</p>
+                              <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold">{doc.type}</p>
                             </div>
                           </div>
-                          <a href={`/${doc.file_path}`} download className="text-slate-400 hover:text-indigo-600 transition-colors">
+                          <a href={`/${doc.file_path}`} download className="text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                             <Download size={18} />
                           </a>
                         </div>
@@ -385,13 +392,13 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
                 </Card>
                 <Card title="Descripción / Notas (Markdown)">
                   <textarea 
-                    className="w-full p-4 border border-slate-200 rounded-xl font-mono text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full p-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl font-mono text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 dark:text-slate-200"
                     rows={6}
                     defaultValue={selectedOpp.description}
                     onBlur={(e) => handleUpdateOpp({ description: e.target.value })}
                     placeholder="Escribe aquí notas o descripción de la oportunidad..."
                   />
-                  <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-100 prose prose-sm max-w-none">
+                  <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-100 dark:border-slate-800 prose prose-sm dark:prose-invert max-w-none">
                     <ReactMarkdown>{selectedOpp.description || '*Sin descripción*'}</ReactMarkdown>
                   </div>
                 </Card>
@@ -402,30 +409,30 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
               <div className="space-y-6">
                 <Card title="Oferta Técnica (Trabajo)">
                   <div className="space-y-4">
-                    <div className="p-8 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center gap-3 hover:border-indigo-400 transition-colors cursor-pointer relative">
-                      <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
+                    <div className="p-8 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl flex flex-col items-center justify-center gap-3 hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors cursor-pointer relative">
+                      <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400">
                         <Upload size={24} />
                       </div>
                       <div className="text-center">
-                        <p className="text-sm font-bold text-slate-800">Subir Borrador de Oferta</p>
-                        <p className="text-xs text-slate-400">Word o PowerPoint para previsualización</p>
+                        <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Subir Borrador de Oferta</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500">Word o PowerPoint para previsualización</p>
                       </div>
                       <input type="file" onChange={(e) => handleFileUpload(e, 'TECHNICAL_OFFER')} className="absolute inset-0 opacity-0 cursor-pointer" />
                     </div>
                     <div className="space-y-2">
                       {selectedOpp.documents?.filter(d => d.type === 'TECHNICAL_OFFER').map(doc => (
-                        <div key={doc.id} className="p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
+                        <div key={doc.id} className="p-4 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
-                              <FileText size={20} className="text-indigo-600" />
-                              <span className="font-bold text-slate-800">{doc.file_name}</span>
+                              <FileText size={20} className="text-indigo-600 dark:text-indigo-400" />
+                              <span className="font-bold text-slate-800 dark:text-slate-200">{doc.file_name}</span>
                             </div>
                             <div className="flex gap-2">
-                              <button className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"><Eye size={18} /></button>
-                              <a href={`/${doc.file_path}`} download className="p-2 text-slate-400 hover:text-indigo-600 transition-colors"><Download size={18} /></a>
+                              <button className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"><Eye size={18} /></button>
+                              <a href={`/${doc.file_path}`} download className="p-2 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"><Download size={18} /></a>
                             </div>
                           </div>
-                          <div className="aspect-video bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 italic text-sm">
+                          <div className="aspect-video bg-slate-100 dark:bg-slate-900 rounded-lg flex items-center justify-center text-slate-400 dark:text-slate-600 italic text-sm">
                             Previsualización de {doc.file_name.split('.').pop()?.toUpperCase()}
                           </div>
                         </div>
@@ -439,23 +446,23 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
             {editSection === 'economic' && (
               <div className="space-y-6">
                 <Card title="Gestión de Perfiles">
-                  <form onSubmit={handleAddProfile} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <form onSubmit={handleAddProfile} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Perfil</label>
-                      <input name="profile_title" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm" placeholder="Ej: Analista" />
+                      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Perfil</label>
+                      <input name="profile_title" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-200" placeholder="Ej: Analista" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">CSR</label>
-                      <input name="csr" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm" placeholder="Ej: CSR-3" />
+                      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">CSR</label>
+                      <input name="csr" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-200" placeholder="Ej: CSR-3" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Cant.</label>
-                      <input name="quantity" type="number" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm" />
+                      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Cant.</label>
+                      <input name="quantity" type="number" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-200" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Coste</label>
+                      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Coste</label>
                       <div className="flex gap-2">
-                        <input name="cost" type="number" step="0.01" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm" />
+                        <input name="cost" type="number" step="0.01" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-200" />
                         <button type="submit" className="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 transition-colors">
                           <Plus size={18} />
                         </button>
@@ -464,21 +471,21 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
                   </form>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left">
-                      <thead className="bg-slate-50 border-b border-slate-200">
+                      <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
                         <tr>
-                          <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase">Perfil</th>
-                          <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase">CSR</th>
-                          <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase">Cant.</th>
-                          <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase text-right">Coste</th>
+                          <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Perfil</th>
+                          <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">CSR</th>
+                          <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Cant.</th>
+                          <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase text-right">Coste</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {selectedOpp.profiles?.map(item => (
                           <tr key={item.id}>
-                            <td className="px-4 py-3 text-sm font-medium">{item.profile_title}</td>
-                            <td className="px-4 py-3 text-sm text-slate-600">{item.csr}</td>
-                            <td className="px-4 py-3 text-sm text-slate-600">{item.quantity}</td>
-                            <td className="px-4 py-3 text-sm text-slate-900 font-bold text-right">{item.cost.toLocaleString()}€</td>
+                            <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-slate-200">{item.profile_title}</td>
+                            <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{item.csr}</td>
+                            <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{item.quantity}</td>
+                            <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-bold text-right">{item.cost.toLocaleString()}€</td>
                           </tr>
                         ))}
                       </tbody>
@@ -487,15 +494,15 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
                 </Card>
 
                 <Card title="Gestión de Herramientas">
-                  <form onSubmit={handleAddTool} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <form onSubmit={handleAddTool} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Herramienta</label>
-                      <input name="tool_name" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm" placeholder="Ej: Laptop" />
+                      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Herramienta</label>
+                      <input name="tool_name" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-200" placeholder="Ej: Laptop" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Coste</label>
+                      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Coste</label>
                       <div className="flex gap-2">
-                        <input name="cost" type="number" step="0.01" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm" />
+                        <input name="cost" type="number" step="0.01" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-200" />
                         <button type="submit" className="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 transition-colors">
                           <Plus size={18} />
                         </button>
@@ -504,17 +511,17 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
                   </form>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left">
-                      <thead className="bg-slate-50 border-b border-slate-200">
+                      <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
                         <tr>
-                          <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase">Herramienta</th>
-                          <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase text-right">Coste</th>
+                          <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Herramienta</th>
+                          <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase text-right">Coste</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {selectedOpp.tools?.map(item => (
                           <tr key={item.id}>
-                            <td className="px-4 py-3 text-sm font-medium">{item.tool_name}</td>
-                            <td className="px-4 py-3 text-sm text-slate-900 font-bold text-right">{item.cost.toLocaleString()}€</td>
+                            <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-slate-200">{item.tool_name}</td>
+                            <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-bold text-right">{item.cost.toLocaleString()}€</td>
                           </tr>
                         ))}
                       </tbody>
@@ -690,19 +697,19 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
 const Modal = ({ isOpen, onClose, title, children }: { isOpen: boolean, onClose: () => void, title: string, children: React.ReactNode }) => {
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border border-slate-200 dark:border-slate-800"
       >
-        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-          <h3 className="text-xl font-bold text-slate-800">{title}</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+        <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
+          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">{title}</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
             <Plus className="rotate-45" size={24} />
           </button>
         </div>
-        <div className="p-6 overflow-y-auto">
+        <div className="p-6 overflow-y-auto dark:text-slate-300">
           {children}
         </div>
       </motion.div>
@@ -816,17 +823,17 @@ const RecruitingView = ({ profileId }: { profileId: string }) => {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-white border-l-4 border-indigo-500">
-            <p className="text-slate-500 text-sm font-medium">Posiciones Abiertas</p>
-            <p className="text-3xl font-bold text-slate-800">{positions.length}</p>
+          <Card className="bg-white dark:bg-slate-900 border-l-4 border-indigo-500">
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Posiciones Abiertas</p>
+            <p className="text-3xl font-bold text-slate-800 dark:text-slate-100">{positions.length}</p>
           </Card>
-          <Card className="bg-white border-l-4 border-emerald-500">
-            <p className="text-slate-500 text-sm font-medium">Candidatos Staffing</p>
-            <p className="text-3xl font-bold text-slate-800">{staffingCount}</p>
+          <Card className="bg-white dark:bg-slate-900 border-l-4 border-emerald-500">
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Candidatos Staffing</p>
+            <p className="text-3xl font-bold text-slate-800 dark:text-slate-100">{staffingCount}</p>
           </Card>
-          <Card className="bg-white border-l-4 border-amber-500">
-            <p className="text-slate-500 text-sm font-medium">Candidatos Becarios</p>
-            <p className="text-3xl font-bold text-slate-800">{becaCount}</p>
+          <Card className="bg-white dark:bg-slate-900 border-l-4 border-amber-500">
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Candidatos Becarios</p>
+            <p className="text-3xl font-bold text-slate-800 dark:text-slate-100">{becaCount}</p>
           </Card>
         </div>
 
@@ -846,14 +853,17 @@ const RecruitingView = ({ profileId }: { profileId: string }) => {
                       <Cell key={`cell-${index}`} fill={['#6366f1', '#10b981', '#f59e0b', '#64748b', '#ef4444'][index % 5]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }}
+                    itemStyle={{ color: '#f8fafc' }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
               <div className="flex flex-wrap justify-center gap-4 text-xs mt-2">
                 {statusData.map((d, i) => (
                   <div key={i} className="flex items-center gap-1">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#64748b', '#ef4444'][i % 5] }}></div>
-                    {d.name} ({d.value})
+                    <span className="text-slate-600 dark:text-slate-400">{d.name} ({d.value})</span>
                   </div>
                 ))}
               </div>
@@ -864,10 +874,13 @@ const RecruitingView = ({ profileId }: { profileId: string }) => {
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={positions.slice(0, 5).map(p => ({ name: p.title, count: candidates.filter(c => c.position_id === p.id).length }))}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
-                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" className="dark:stroke-slate-800" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }}
+                    itemStyle={{ color: '#f8fafc' }}
+                  />
                   <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -945,18 +958,18 @@ const RecruitingView = ({ profileId }: { profileId: string }) => {
             <Plus size={18} /> Nuevo Perfil
           </button>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
           <table className="w-full text-left">
-            <thead className="bg-slate-50 border-b border-slate-200">
+            <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
               <tr>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Nombre</th>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Posición</th>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Exp.</th>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Estado</th>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Acciones</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Nombre</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Posición</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Exp.</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Estado</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filtered.map(c => (
                 <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4 font-medium text-slate-800">{c.name}</td>
@@ -1237,16 +1250,16 @@ const StaffingView = ({ profileId }: { profileId: string }) => {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Equipo</p>
-          <p className="text-3xl font-bold mt-1 text-indigo-600">{staff.length}</p>
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Total Equipo</p>
+          <p className="text-3xl font-bold mt-1 text-indigo-600 dark:text-indigo-400">{staff.length}</p>
         </Card>
         <Card>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Promedio Antigüedad</p>
-          <p className="text-3xl font-bold mt-1 text-emerald-600">2.4 años</p>
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Promedio Antigüedad</p>
+          <p className="text-3xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">0 años</p>
         </Card>
         <Card>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Vacaciones Pendientes</p>
-          <p className="text-3xl font-bold mt-1 text-amber-600">142 días</p>
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Vacaciones Pendientes</p>
+          <p className="text-3xl font-bold mt-1 text-amber-600 dark:text-amber-400">0 días</p>
         </Card>
       </div>
       <Card title="Distribución por Categoría">
@@ -1258,10 +1271,13 @@ const StaffingView = ({ profileId }: { profileId: string }) => {
               { name: 'Senior', value: staff.filter(s => s.csr.includes('3')).length },
               { name: 'Expert', value: staff.filter(s => s.csr.includes('4')).length },
             ]}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} />
-              <YAxis axisLine={false} tickLine={false} />
-              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" className="dark:stroke-slate-800" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }}
+                itemStyle={{ color: '#f8fafc' }}
+              />
               <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -1278,22 +1294,22 @@ const StaffingView = ({ profileId }: { profileId: string }) => {
         </button>
       </div>
 
-      <div className="overflow-x-auto bg-white rounded-xl border border-slate-200">
+      <div className="overflow-x-auto bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
         <table className="w-full text-left">
-          <thead className="bg-slate-50 border-b border-slate-200">
+          <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
             <tr>
-              <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Nombre</th>
-              <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
-              <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">CSR</th>
-              <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Acciones</th>
+              <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Nombre</th>
+              <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Email</th>
+              <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">CSR</th>
+              <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {staff.map(s => (
-              <tr key={s.id} className="hover:bg-slate-50/50 transition-colors">
-                <td className="px-6 py-4 font-medium text-slate-800">{s.name}</td>
-                <td className="px-6 py-4 text-slate-600">{s.email}</td>
-                <td className="px-6 py-4 text-slate-600">{s.csr}</td>
+              <tr key={s.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                <td className="px-6 py-4 font-medium text-slate-800 dark:text-slate-100">{s.name}</td>
+                <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{s.email}</td>
+                <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{s.csr}</td>
                 <td className="px-6 py-4">
                   <button onClick={() => setSelectedStaffId(s.id)} className="text-indigo-600 hover:text-indigo-800 font-semibold text-sm flex items-center gap-1">
                     <Edit3 size={14} /> Editar
@@ -1315,7 +1331,7 @@ const StaffingView = ({ profileId }: { profileId: string }) => {
           <button onClick={() => setSelectedStaffId(null)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
             <Plus size={20} className="rotate-45" />
           </button>
-          <h2 className="text-2xl font-bold text-slate-800">{selectedStaff.name}</h2>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{selectedStaff.name}</h2>
         </div>
 
         <div className="flex gap-4 border-b border-slate-200">
@@ -1398,22 +1414,22 @@ const StaffingView = ({ profileId }: { profileId: string }) => {
         {editSection === 'vacations' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Días Totales</p>
-                <p className="text-3xl font-bold mt-1 text-slate-800">23</p>
-              </Card>
-              <Card>
-                <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Días Disfrutados</p>
-                <p className="text-3xl font-bold mt-1 text-emerald-600">
-                  {selectedStaff.vacations?.reduce((acc, curr) => acc + curr.days, 0) || 0}
-                </p>
-              </Card>
-              <Card>
-                <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Días Restantes</p>
-                <p className="text-3xl font-bold mt-1 text-amber-600">
-                  {23 - (selectedStaff.vacations?.reduce((acc, curr) => acc + curr.days, 0) || 0)}
-                </p>
-              </Card>
+      <Card>
+        <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Días Totales</p>
+        <p className="text-3xl font-bold mt-1 text-slate-800 dark:text-slate-100">23</p>
+      </Card>
+      <Card>
+        <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Días Disfrutados</p>
+        <p className="text-3xl font-bold mt-1 text-emerald-600">
+          {selectedStaff.vacations?.reduce((acc, curr) => acc + curr.days, 0) || 0}
+        </p>
+      </Card>
+      <Card>
+        <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Días Restantes</p>
+        <p className="text-3xl font-bold mt-1 text-amber-600">
+          {23 - (selectedStaff.vacations?.reduce((acc, curr) => acc + curr.days, 0) || 0)}
+        </p>
+      </Card>
             </div>
             <Card title="Registrar Vacaciones">
               <form onSubmit={handleAddVacation} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -1574,12 +1590,14 @@ const ClientsView = ({ profileId }: { profileId: string }) => {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Clientes</p>
-          <p className="text-3xl font-bold mt-1 text-indigo-600">{clients.length}</p>
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Total Clientes</p>
+          <p className="text-3xl font-bold mt-1 text-indigo-600 dark:text-indigo-400">{clients.length}</p>
         </Card>
         <Card>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Proyectos Activos</p>
-          <p className="text-3xl font-bold mt-1 text-emerald-600">12</p>
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Proyectos Activos</p>
+          <p className="text-3xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
+            {clients.reduce((acc, c) => acc + (c.projects?.length || 0), 0)}
+          </p>
         </Card>
       </div>
     </div>
@@ -1614,7 +1632,7 @@ const ClientsView = ({ profileId }: { profileId: string }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {clients.map(client => (
           <div key={client.id} className="space-y-4">
-            <h3 className="text-lg font-bold text-slate-800">{client.name}</h3>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{client.name}</h3>
             <ProjectList clientId={client.id} />
           </div>
         ))}
@@ -1710,21 +1728,21 @@ const ProjectList = ({ clientId }: { clientId: number }) => {
   return (
     <div className="space-y-2">
       {projects.map(p => (
-        <div key={p.id} className="p-3 bg-white border border-slate-200 rounded-lg shadow-sm">
+        <div key={p.id} className="p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm">
           <div className="flex justify-between items-start">
             <div>
-              <p className="font-bold text-slate-800">{p.name}</p>
-              <p className="text-[10px] text-slate-400 uppercase font-bold">{p.code}</p>
+              <p className="font-bold text-slate-800 dark:text-slate-100">{p.name}</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold">{p.code}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs font-bold text-emerald-600">{p.sales_price.toLocaleString()}€</p>
-              <p className="text-[10px] text-slate-400">Venta</p>
+              <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{p.sales_price.toLocaleString()}€</p>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500">Venta</p>
             </div>
           </div>
-          <p className="text-xs text-slate-600 mt-2 line-clamp-2">{p.description}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 line-clamp-2">{p.description}</p>
         </div>
       ))}
-      {projects.length === 0 && <p className="text-xs text-slate-400 italic">No hay proyectos registrados.</p>}
+      {projects.length === 0 && <p className="text-xs text-slate-400 dark:text-slate-500 italic">No hay proyectos registrados.</p>}
     </div>
   );
 };
@@ -1779,20 +1797,20 @@ const HoursView = ({ profileId }: { profileId: string }) => {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Horas Totales</p>
-          <p className="text-3xl font-bold mt-1 text-indigo-600">
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Horas Totales</p>
+          <p className="text-3xl font-bold mt-1 text-indigo-600 dark:text-indigo-400">
             {summary.reduce((acc, curr) => acc + curr.total_hours, 0).toFixed(1)}h
           </p>
         </Card>
         <Card>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Coste Equipo</p>
-          <p className="text-3xl font-bold mt-1 text-slate-800">
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Coste Equipo</p>
+          <p className="text-3xl font-bold mt-1 text-slate-800 dark:text-slate-100">
             {summary.reduce((acc, curr) => acc + curr.total_cost, 0).toLocaleString()}€
           </p>
         </Card>
         <Card>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Beneficio Generado</p>
-          <p className="text-3xl font-bold mt-1 text-emerald-600">
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Beneficio Generado</p>
+          <p className="text-3xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
             {summary.reduce((acc, curr) => acc + (curr.total_sales - curr.total_cost), 0).toLocaleString()}€
           </p>
         </Card>
@@ -1801,23 +1819,23 @@ const HoursView = ({ profileId }: { profileId: string }) => {
       <Card title="Resumen por Persona y Proyecto">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-slate-50 border-b border-slate-200">
+            <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
               <tr>
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase">Persona</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase">Proyecto</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase text-right">Horas</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase text-right">Coste</th>
-                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 uppercase text-right">Beneficio</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Persona</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Proyecto</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase text-right">Horas</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase text-right">Coste</th>
+                <th className="px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase text-right">Beneficio</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {summary.map((s, i) => (
-                <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-4 py-3 text-sm font-medium">{s.staff_name}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600">{s.project_name}</td>
-                  <td className="px-4 py-3 text-sm text-right">{s.total_hours}h</td>
-                  <td className="px-4 py-3 text-sm text-right text-slate-500">{s.total_cost.toLocaleString()}€</td>
-                  <td className="px-4 py-3 text-sm text-right font-bold text-emerald-600">
+                <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                  <td className="px-4 py-3 text-sm font-medium text-slate-800 dark:text-slate-200">{s.staff_name}</td>
+                  <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{s.project_name}</td>
+                  <td className="px-4 py-3 text-sm text-right text-slate-600 dark:text-slate-400">{s.total_hours}h</td>
+                  <td className="px-4 py-3 text-sm text-right text-slate-500 dark:text-slate-500">{s.total_cost.toLocaleString()}€</td>
+                  <td className="px-4 py-3 text-sm text-right font-bold text-emerald-600 dark:text-emerald-400">
                     {(s.total_sales - s.total_cost).toLocaleString()}€
                   </td>
                 </tr>
@@ -1837,32 +1855,32 @@ const HoursView = ({ profileId }: { profileId: string }) => {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
         <table className="w-full text-left">
-          <thead className="bg-slate-50 border-b border-slate-200">
+          <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
             <tr>
-              <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Persona</th>
-              <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Proyecto</th>
-              <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Fecha</th>
-              <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Horas</th>
-              <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Beneficio</th>
+              <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Persona</th>
+              <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Proyecto</th>
+              <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Fecha</th>
+              <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Horas</th>
+              <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Beneficio</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {hours.map(h => (
               <tr key={h.id}>
-                <td className="px-6 py-4 text-sm font-medium">{h.staff_name}</td>
-                <td className="px-6 py-4 text-sm text-slate-600">{h.project_name}</td>
-                <td className="px-6 py-4 text-sm text-slate-600">{h.date}</td>
-                <td className="px-6 py-4 text-sm text-slate-600">{h.hours}h</td>
-                <td className="px-6 py-4 text-sm text-emerald-600 font-medium">
+                <td className="px-6 py-4 text-sm font-medium text-slate-800 dark:text-slate-200">{h.staff_name}</td>
+                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{h.project_name}</td>
+                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{h.date}</td>
+                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{h.hours}h</td>
+                <td className="px-6 py-4 text-sm text-emerald-600 dark:text-emerald-400 font-medium">
                   +{(h.hours * (h.sales_per_hour - h.cost_per_hour)).toFixed(2)}€
                 </td>
               </tr>
             ))}
             {hours.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-slate-400 italic">No hay registros de horas.</td>
+                <td colSpan={5} className="px-6 py-12 text-center text-slate-400 dark:text-slate-500 italic">No hay registros de horas.</td>
               </tr>
             )}
           </tbody>
@@ -1966,20 +1984,20 @@ const EconomicView = ({ profileId }: { profileId: string }) => {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Gastos Totales</p>
-          <p className="text-3xl font-bold mt-1 text-slate-800">
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Gastos Totales</p>
+          <p className="text-3xl font-bold mt-1 text-slate-800 dark:text-slate-100">
             {summary.reduce((acc, curr) => acc + curr.total_costs, 0).toLocaleString()}€
           </p>
         </Card>
         <Card>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Ventas Totales</p>
-          <p className="text-3xl font-bold mt-1 text-indigo-600">
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Ventas Totales</p>
+          <p className="text-3xl font-bold mt-1 text-indigo-600 dark:text-indigo-400">
             {summary.reduce((acc, curr) => acc + curr.total_sales, 0).toLocaleString()}€
           </p>
         </Card>
         <Card>
-          <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Margen Neto</p>
-          <p className="text-3xl font-bold mt-1 text-emerald-600">
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Margen Neto</p>
+          <p className="text-3xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">
             {summary.reduce((acc, curr) => acc + (curr.total_sales - curr.total_costs), 0).toLocaleString()}€
           </p>
         </Card>
@@ -1990,11 +2008,12 @@ const EconomicView = ({ profileId }: { profileId: string }) => {
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" className="dark:stroke-slate-800" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
                 <Tooltip 
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }}
+                  itemStyle={{ color: '#f8fafc' }}
                 />
                 <Bar dataKey="beneficios" name="Beneficio" fill="#10b981" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="gastos" name="Gasto" fill="#ef4444" radius={[4, 4, 0, 0]} />
@@ -2018,7 +2037,10 @@ const EconomicView = ({ profileId }: { profileId: string }) => {
                     <Cell key={`cell-${index}`} fill={['#6366f1', '#818cf8', '#c7d2fe', '#4f46e5'][index % 4]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#f8fafc' }}
+                  itemStyle={{ color: '#f8fafc' }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -2031,11 +2053,11 @@ const EconomicView = ({ profileId }: { profileId: string }) => {
     <div className="space-y-8">
       {summary.map(client => (
         <div key={client.id} className="space-y-4">
-          <div className="flex justify-between items-end border-b border-slate-200 pb-2">
-            <h3 className="text-xl font-bold text-slate-800">{client.name}</h3>
+          <div className="flex justify-between items-end border-b border-slate-200 dark:border-slate-800 pb-2">
+            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">{client.name}</h3>
             <div className="text-right">
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Balance Cliente</p>
-              <p className={cn("text-lg font-bold", (client.total_sales - client.total_costs) >= 0 ? "text-emerald-600" : "text-red-600")}>
+              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Balance Cliente</p>
+              <p className={cn("text-lg font-bold", (client.total_sales - client.total_costs) >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400")}>
                 {(client.total_sales - client.total_costs).toLocaleString()}€
               </p>
             </div>
@@ -2045,21 +2067,21 @@ const EconomicView = ({ profileId }: { profileId: string }) => {
             {client.projects.map(project => (
               <Card key={project.id} className="relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-2">
-                  <span className="text-[10px] font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-500">{project.code}</span>
+                  <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-slate-500 dark:text-slate-400">{project.code}</span>
                 </div>
-                <p className="font-bold text-slate-800 mb-4">{project.name}</p>
+                <p className="font-bold text-slate-800 dark:text-slate-100 mb-4">{project.name}</p>
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Gastos Totales:</span>
-                    <span className="font-bold text-red-600">{project.total_costs.toLocaleString()}€</span>
+                    <span className="text-slate-500 dark:text-slate-400">Gastos Totales:</span>
+                    <span className="font-bold text-red-600 dark:text-red-400">{project.total_costs.toLocaleString()}€</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-slate-500">Ventas Totales:</span>
-                    <span className="font-bold text-indigo-600">{project.total_sales.toLocaleString()}€</span>
+                    <span className="text-slate-500 dark:text-slate-400">Ventas Totales:</span>
+                    <span className="font-bold text-indigo-600 dark:text-indigo-400">{project.total_sales.toLocaleString()}€</span>
                   </div>
-                  <div className="pt-2 border-t border-slate-100 flex justify-between text-sm">
-                    <span className="font-bold text-slate-700">Margen:</span>
-                    <span className={cn("font-bold", (project.total_sales - project.total_costs) >= 0 ? "text-emerald-600" : "text-red-600")}>
+                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-between text-sm">
+                    <span className="font-bold text-slate-700 dark:text-slate-300">Margen:</span>
+                    <span className={cn("font-bold", (project.total_sales - project.total_costs) >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400")}>
                       {(project.total_sales - project.total_costs).toLocaleString()}€
                     </span>
                   </div>
@@ -2089,7 +2111,7 @@ const EconomicView = ({ profileId }: { profileId: string }) => {
         ))}
       </div>
 
-      <h2 className="text-2xl font-bold text-slate-800">Gestión Económica</h2>
+      <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Gestión Económica</h2>
       
       {subTab === 'dashboard' ? renderDashboard() : renderGestion()}
     </div>
@@ -2175,11 +2197,11 @@ const UpdateView = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card title="Copia de Seguridad">
           <div className="space-y-4">
-            <p className="text-sm text-slate-500">Extrae o importa toda la información de la base de datos.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Extrae o importa toda la información de la base de datos.</p>
             <div className="flex flex-col gap-3">
               <button 
                 onClick={handleExport}
-                className="w-full bg-slate-800 text-white py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-slate-900 transition-all"
+                className="w-full bg-slate-800 dark:bg-slate-700 text-white py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-slate-900 dark:hover:bg-slate-600 transition-all"
               >
                 <Download size={18} /> Exportar Datos (JSON)
               </button>
@@ -2190,7 +2212,7 @@ const UpdateView = () => {
                   onChange={handleImport}
                   className="absolute inset-0 opacity-0 cursor-pointer" 
                 />
-                <button className="w-full border border-slate-200 text-slate-600 py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-slate-50 transition-all">
+                <button className="w-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 py-2 rounded-lg font-bold flex items-center justify-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
                   <Upload size={18} /> Importar Datos (JSON)
                 </button>
               </div>
@@ -2201,22 +2223,22 @@ const UpdateView = () => {
         <Card title="Configuración de GitHub">
           <div className="space-y-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-500 uppercase">Usuario GitHub</label>
+              <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Usuario GitHub</label>
               <input 
                 type="text"
                 value={credentials.username}
                 onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                 placeholder="Tu usuario"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-bold text-slate-500 uppercase">Token de Acceso (PAT)</label>
+              <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Token de Acceso (PAT)</label>
               <input 
                 type="password"
                 value={credentials.token}
                 onChange={(e) => setCredentials(prev => ({ ...prev, token: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
                 placeholder="ghp_xxxxxxxxxxxx"
               />
             </div>
@@ -2226,36 +2248,36 @@ const UpdateView = () => {
 
       <Card title="Actualización del Sistema">
         <div className="space-y-6">
-          <div className="p-4 bg-amber-50 border border-amber-100 rounded-lg">
-            <p className="text-xs text-amber-800 flex items-center gap-2">
+          <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 rounded-lg">
+            <p className="text-xs text-amber-800 dark:text-amber-400 flex items-center gap-2">
               <AlertCircle size={14} /> 
               La actualización solo descarga cambios en el código. Tus datos (base de datos y archivos subidos) no se verán afectados.
             </p>
           </div>
-          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-100">
+          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
             <div>
-              <p className="text-sm text-slate-500">Versión Actual</p>
-              <p className="text-2xl font-bold text-slate-800">{version?.current || '...'}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Versión Actual</p>
+              <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{version?.current || '...'}</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-slate-500">Última Versión (GitHub)</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Última Versión (GitHub)</p>
               {version?.error ? (
                 <p className="text-xs text-rose-500 font-medium max-w-[150px] leading-tight">{version.error}</p>
               ) : (
-                <p className="text-2xl font-bold text-indigo-600">{version?.latest || '...'}</p>
+                <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{version?.latest || '...'}</p>
               )}
             </div>
           </div>
 
           <div className="space-y-2">
-            <h4 className="font-semibold text-slate-700">Últimos cambios en GitHub:</h4>
+            <h4 className="font-semibold text-slate-700 dark:text-slate-300">Últimos cambios en GitHub:</h4>
             <ul className="space-y-1">
               {version?.changes?.map((change, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-slate-600">
+                <li key={i} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                   <ChevronRight size={14} className="text-indigo-400" /> {change}
                 </li>
               ))}
-              {(!version || !version.changes || version.changes.length === 0) && <li className="text-sm text-slate-400 italic">No hay cambios recientes detectados.</li>}
+              {(!version || !version.changes || version.changes.length === 0) && <li className="text-sm text-slate-400 dark:text-slate-500 italic">No hay cambios recientes detectados.</li>}
             </ul>
           </div>
 
@@ -2325,7 +2347,7 @@ const DocumentationView = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-20">
       <div className="space-y-2">
-        <h2 className="text-3xl font-bold text-slate-800">Guía de Uso y Documentación</h2>
+        <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100">Guía de Uso y Documentación</h2>
         <p className="text-slate-500">Aprende a sacar el máximo partido a la herramienta PSBD Management.</p>
       </div>
 
@@ -2348,6 +2370,22 @@ export default function App() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [activeProfile, setActiveProfile] = useState<string>('offensive');
   const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('theme') === 'dark';
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
 
   useEffect(() => {
     fetch('/api/profiles')
@@ -2370,21 +2408,21 @@ export default function App() {
       case 'update': return <UpdateView />;
       default: return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-indigo-600 text-white border-none">
-            <p className="text-indigo-100 text-sm">Oportunidades Activas</p>
-            <p className="text-3xl font-bold mt-1">12</p>
+          <Card className="bg-indigo-600 dark:bg-indigo-600 text-white border-none shadow-lg shadow-indigo-200 dark:shadow-none">
+            <p className="text-indigo-100 text-sm font-medium">Oportunidades Activas</p>
+            <p className="text-3xl font-bold mt-1">0</p>
           </Card>
-          <Card>
-            <p className="text-slate-500 text-sm">Staff Total</p>
-            <p className="text-3xl font-bold mt-1 text-slate-800">45</p>
+          <Card className="bg-white dark:bg-slate-900 border-l-4 border-emerald-500">
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Staff Total</p>
+            <p className="text-3xl font-bold mt-1 text-slate-800 dark:text-slate-100">0</p>
           </Card>
-          <Card>
-            <p className="text-slate-500 text-sm">Proyectos en Curso</p>
-            <p className="text-3xl font-bold mt-1 text-slate-800">8</p>
+          <Card className="bg-white dark:bg-slate-900 border-l-4 border-amber-500">
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Proyectos en Curso</p>
+            <p className="text-3xl font-bold mt-1 text-slate-800 dark:text-slate-100">0</p>
           </Card>
-          <Card>
-            <p className="text-slate-500 text-sm">Margen Beneficio</p>
-            <p className="text-3xl font-bold mt-1 text-emerald-600">24%</p>
+          <Card className="bg-white dark:bg-slate-900 border-l-4 border-rose-500">
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Margen Beneficio</p>
+            <p className="text-3xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">0%</p>
           </Card>
           <div className="col-span-full">
             <EconomicView profileId={activeProfile} />
@@ -2395,13 +2433,13 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden">
+    <div className={cn("flex h-screen font-sans overflow-hidden transition-colors duration-300", darkMode ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900")}>
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-right border-slate-200 flex flex-col">
+      <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col">
         <div className="p-6">
-          <div className="flex items-center gap-2 text-indigo-600">
+          <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">P</div>
-            <h1 className="font-bold text-xl tracking-tight">PSBD <span className="text-slate-400 font-normal">Mgmt</span></h1>
+            <h1 className="font-bold text-xl tracking-tight">PSBD <span className="text-slate-400 dark:text-slate-500 font-normal">Mgmt</span></h1>
           </div>
         </div>
         
@@ -2416,7 +2454,7 @@ export default function App() {
           <SidebarItem icon={BookOpen} label="Documentación" active={activeTab === 'docs'} onClick={() => setActiveTab('docs')} />
         </nav>
 
-        <div className="p-4 border-top border-slate-100">
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800">
           <SidebarItem icon={RefreshCw} label="Actualizaciones" active={activeTab === 'update'} onClick={() => setActiveTab('update')} />
         </div>
       </aside>
@@ -2424,8 +2462,8 @@ export default function App() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <header className="h-16 bg-white border-bottom border-slate-200 flex items-center justify-center px-8">
-          <div className="flex bg-slate-100 p-1 rounded-xl">
+        <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-center px-8 relative">
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
             {profiles.map(p => (
               <button
                 key={p.id}
@@ -2433,14 +2471,22 @@ export default function App() {
                 className={cn(
                   "px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200",
                   activeProfile === p.id 
-                    ? "bg-white text-indigo-600 shadow-sm" 
-                    : "text-slate-500 hover:text-slate-700"
+                    ? "bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm" 
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
                 )}
               >
                 {p.name}
               </button>
             ))}
           </div>
+
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="absolute right-8 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+            title={darkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+          >
+            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
         </header>
 
         {/* Scrollable Content Area */}

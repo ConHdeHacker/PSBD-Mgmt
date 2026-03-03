@@ -130,6 +130,7 @@ export interface Client {
   profile_id: string;
   name: string;
   info: string;
+  projects?: Project[];
 }
 
 export interface Project {
