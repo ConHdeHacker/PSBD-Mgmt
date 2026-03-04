@@ -89,22 +89,35 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
   const [editSection, setEditSection] = useState<'requirements' | 'technical' | 'economic' | 'hours'>('requirements');
 
   const fetchData = async () => {
-    setLoading(true);
-    const [oppsRes, summaryRes] = await Promise.all([
-      fetch(`/api/opportunities/${profileId}`),
-      fetch(`/api/opportunities-hours-summary/${profileId}`)
-    ]);
-    const oppsData = await oppsRes.json();
-    const summaryData = await summaryRes.json();
-    setOpps(oppsData);
-    setHoursSummary(summaryData);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const [oppsRes, summaryRes] = await Promise.all([
+        fetch(`/api/opportunities/${profileId}`),
+        fetch(`/api/opportunities-hours-summary/${profileId}`)
+      ]);
+      
+      const oppsData = oppsRes.ok ? await oppsRes.json() : [];
+      const summaryData = summaryRes.ok ? await summaryRes.json() : [];
+      
+      setOpps(Array.isArray(oppsData) ? oppsData : []);
+      setHoursSummary(Array.isArray(summaryData) ? summaryData : []);
+    } catch (error) {
+      console.error("Error fetching opportunities:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchOppDetails = async (id: number) => {
-    const res = await fetch(`/api/opportunity/${id}`);
-    const data = await res.json();
-    setSelectedOpp(data);
+    try {
+      const res = await fetch(`/api/opportunity/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedOpp(data);
+      }
+    } catch (error) {
+      console.error("Error fetching opportunity details:", error);
+    }
   };
 
   useEffect(() => {
@@ -147,7 +160,8 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
   const handleAddProfile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedOppId) return;
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
     await fetch('/api/opportunity-profile', {
       method: 'POST',
@@ -156,13 +170,14 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
     });
     fetchOppDetails(selectedOppId);
     fetchData();
-    e.currentTarget.reset();
+    form.reset();
   };
 
   const handleAddTool = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedOppId) return;
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
     await fetch('/api/opportunity-tool', {
       method: 'POST',
@@ -171,13 +186,14 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
     });
     fetchOppDetails(selectedOppId);
     fetchData();
-    e.currentTarget.reset();
+    form.reset();
   };
 
   const handleAddHours = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedOppId) return;
-    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
     await fetch('/api/opportunity-hours', {
       method: 'POST',
@@ -186,6 +202,7 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
     });
     fetchOppDetails(selectedOppId);
     fetchData();
+    form.reset();
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'RFP' | 'ADDITIONAL' | 'TECHNICAL_OFFER') => {
@@ -195,6 +212,7 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
     formData.append('file', file);
     
     const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+    if (!uploadRes.ok) return;
     const uploadResult = await uploadRes.json();
     
     await fetch('/api/opportunity-documents', {
@@ -531,19 +549,19 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
             {editSection === 'hours' && (
               <div className="space-y-6">
                 <Card title="Horas Dedicadas">
-                  <form onSubmit={handleAddHours} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <form onSubmit={handleAddHours} className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Responsable</label>
-                      <input name="staff_name" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm" />
+                      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Responsable</label>
+                      <input name="staff_name" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-200" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Horas</label>
-                      <input name="hours" type="number" step="0.5" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm" />
+                      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Horas</label>
+                      <input name="hours" type="number" step="0.5" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-200" />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Fecha</label>
+                      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Fecha</label>
                       <div className="flex gap-2">
-                        <input name="date" type="date" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-sm" />
+                        <input name="date" type="date" required className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-200" />
                         <button type="submit" className="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 transition-colors">
                           <Plus size={18} />
                         </button>
@@ -552,17 +570,17 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
                   </form>
                   <div className="space-y-2">
                     {selectedOpp.hours?.map(log => (
-                      <div key={log.id} className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
+                      <div key={log.id} className="flex items-center justify-between p-3 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-bold text-xs">
+                          <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-xs">
                             {log.staff_name.charAt(0)}
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-slate-800">{log.staff_name}</p>
-                            <p className="text-[10px] text-slate-400">{log.date}</p>
+                            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{log.staff_name}</p>
+                            <p className="text-[10px] text-slate-400 dark:text-slate-500">{log.date}</p>
                           </div>
                         </div>
-                        <div className="text-sm font-bold text-indigo-600">{log.hours}h</div>
+                        <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400">{log.hours}h</div>
                       </div>
                     ))}
                   </div>
@@ -575,11 +593,11 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
             <Card title="Detalles Generales">
               <div className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Estado</label>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Estado</label>
                   <select 
                     value={selectedOpp.status}
                     onChange={(e) => handleUpdateOpp({ status: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-bold"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-bold text-slate-800 dark:text-slate-100"
                   >
                     <option>Going Review</option>
                     <option>En licitacion</option>
@@ -590,28 +608,28 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Sector</label>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Sector</label>
                   <input 
                     defaultValue={selectedOpp.sector}
                     onBlur={(e) => handleUpdateOpp({ sector: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" 
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-100" 
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Responsable</label>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Responsable</label>
                   <input 
                     defaultValue={selectedOpp.owner}
                     onBlur={(e) => handleUpdateOpp({ owner: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" 
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-100" 
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Fecha RFP</label>
+                  <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">Fecha RFP</label>
                   <input 
                     type="date"
                     defaultValue={selectedOpp.rfp_date}
                     onBlur={(e) => handleUpdateOpp({ rfp_date: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" 
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-100" 
                   />
                 </div>
               </div>
@@ -647,28 +665,28 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
         <form onSubmit={handleCreateOpp} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2 space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase">Nombre del Cliente</label>
-              <input name="client_name" required className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none" />
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Nombre del Cliente</label>
+              <input name="client_name" required className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase">Fecha RFP</label>
-              <input type="date" name="rfp_date" required className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none" />
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Fecha RFP</label>
+              <input type="date" name="rfp_date" required className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase">Fecha Preguntas</label>
-              <input type="date" name="questions_date" className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none" />
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Fecha Preguntas</label>
+              <input type="date" name="questions_date" className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase">Sector</label>
-              <input name="sector" className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none" />
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Sector</label>
+              <input name="sector" className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase">Responsable</label>
-              <input name="owner" className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none" />
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Responsable</label>
+              <input name="owner" className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none" />
             </div>
             <div className="col-span-2 space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase">Estado</label>
-              <select name="status" className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Estado</label>
+              <select name="status" className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
                 <option>Going Review</option>
                 <option>En licitacion</option>
                 <option>Entregada</option>
@@ -678,11 +696,11 @@ const OpportunitiesView = ({ profileId }: { profileId: string }) => {
               </select>
             </div>
             <div className="col-span-2 space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase">Descripción / Notas (Markdown)</label>
-              <textarea name="description" rows={4} className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none font-mono text-sm" placeholder="Soporta Markdown..." />
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Descripción / Notas (Markdown)</label>
+              <textarea name="description" rows={4} className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none font-mono text-sm" placeholder="Soporta Markdown..." />
             </div>
           </div>
-          <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">
+          <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 dark:shadow-none">
             Crear Oportunidad
           </button>
         </form>
@@ -726,16 +744,23 @@ const RecruitingView = ({ profileId }: { profileId: string }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
-    setLoading(true);
-    const [posRes, candRes] = await Promise.all([
-      fetch(`/api/positions/${profileId}`),
-      fetch(`/api/candidates-by-profile/${profileId}`)
-    ]);
-    const posData = await posRes.json();
-    const candData = await candRes.json();
-    setPositions(posData);
-    setCandidates(candData);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const [posRes, candRes] = await Promise.all([
+        fetch(`/api/positions/${profileId}`),
+        fetch(`/api/candidates-by-profile/${profileId}`)
+      ]);
+      
+      const posData = posRes.ok ? await posRes.json() : [];
+      const candData = candRes.ok ? await candRes.json() : [];
+      
+      setPositions(Array.isArray(posData) ? posData : []);
+      setCandidates(Array.isArray(candData) ? candData : []);
+    } catch (error) {
+      console.error("Error fetching recruiting data:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -772,8 +797,10 @@ const RecruitingView = ({ profileId }: { profileId: string }) => {
       const uploadData = new FormData();
       uploadData.append('file', fileInput.files[0]);
       const uploadRes = await fetch('/api/upload', { method: 'POST', body: uploadData });
-      const uploadResult = await uploadRes.json();
-      cv_path = uploadResult.file_path;
+      if (uploadRes.ok) {
+        const uploadResult = await uploadRes.json();
+        cv_path = uploadResult.file_path;
+      }
     }
 
     await fetch('/api/candidates', {
@@ -1182,15 +1209,27 @@ const StaffingView = ({ profileId }: { profileId: string }) => {
   const [editSection, setEditSection] = useState<'general' | 'annual' | 'vacations'>('general');
 
   const fetchData = async () => {
-    const res = await fetch(`/api/staff/${profileId}`);
-    const data = await res.json();
-    setStaff(data);
+    try {
+      const res = await fetch(`/api/staff/${profileId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setStaff(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error("Error fetching staff:", error);
+    }
   };
 
   const fetchStaffDetails = async (id: number) => {
-    const res = await fetch(`/api/staff-details/${id}`);
-    const data = await res.json();
-    setSelectedStaff(data);
+    try {
+      const res = await fetch(`/api/staff-details/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedStaff(data);
+      }
+    } catch (error) {
+      console.error("Error fetching staff details:", error);
+    }
   };
 
   useEffect(() => {
@@ -1548,9 +1587,15 @@ const ClientsView = ({ profileId }: { profileId: string }) => {
   const [showProjectModal, setShowProjectModal] = useState(false);
 
   const fetchData = async () => {
-    const res = await fetch(`/api/clients/${profileId}`);
-    const data = await res.json();
-    setClients(data);
+    try {
+      const res = await fetch(`/api/clients/${profileId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setClients(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+    }
   };
 
   useEffect(() => {
@@ -1718,8 +1763,9 @@ const ProjectList = ({ clientId }: { clientId: number }) => {
 
   useEffect(() => {
     fetch(`/api/projects/${clientId}`)
-      .then(res => res.json())
-      .then(setProjects);
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setProjects(Array.isArray(data) ? data : []))
+      .catch(err => console.error("Error fetching projects:", err));
   }, [clientId]);
 
   return (
@@ -1756,16 +1802,26 @@ const HoursView = ({ profileId }: { profileId: string }) => {
   const [showModal, setShowModal] = useState(false);
 
   const fetchData = async () => {
-    const [hRes, sRes, stRes, cRes] = await Promise.all([
-      fetch(`/api/work-hours/${profileId}`),
-      fetch(`/api/work-hours-summary/${profileId}`),
-      fetch(`/api/staff/${profileId}`),
-      fetch(`/api/clients/${profileId}`)
-    ]);
-    setHours(await hRes.json());
-    setSummary(await sRes.json());
-    setStaff(await stRes.json());
-    setClients(await cRes.json());
+    try {
+      const [hRes, sRes, stRes, cRes] = await Promise.all([
+        fetch(`/api/work-hours/${profileId}`),
+        fetch(`/api/work-hours-summary/${profileId}`),
+        fetch(`/api/staff/${profileId}`),
+        fetch(`/api/clients/${profileId}`)
+      ]);
+      
+      const hData = hRes.ok ? await hRes.json() : [];
+      const sData = sRes.ok ? await sRes.json() : [];
+      const stData = stRes.ok ? await stRes.json() : [];
+      const cData = cRes.ok ? await cRes.json() : [];
+      
+      setHours(Array.isArray(hData) ? hData : []);
+      setSummary(Array.isArray(sData) ? sData : []);
+      setStaff(Array.isArray(stData) ? stData : []);
+      setClients(Array.isArray(cData) ? cData : []);
+    } catch (error) {
+      console.error("Error fetching hours data:", error);
+    }
   };
 
   useEffect(() => {
@@ -1773,8 +1829,15 @@ const HoursView = ({ profileId }: { profileId: string }) => {
   }, [profileId]);
 
   const handleClientChange = async (clientId: string) => {
-    const res = await fetch(`/api/projects/${clientId}`);
-    setProjects(await res.json());
+    try {
+      const res = await fetch(`/api/projects/${clientId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setProjects(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    }
   };
 
   const handleAddHours = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -1962,9 +2025,15 @@ const EconomicView = ({ profileId }: { profileId: string }) => {
   const [subTab, setSubTab] = useState<'dashboard' | 'gestion'>('dashboard');
 
   const fetchData = async () => {
-    const res = await fetch(`/api/economic-summary/${profileId}`);
-    const data = await res.json();
-    setSummary(data);
+    try {
+      const res = await fetch(`/api/economic-summary/${profileId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSummary(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error("Error fetching economic summary:", error);
+    }
   };
 
   useEffect(() => {
@@ -2180,11 +2249,13 @@ export default function App() {
 
   useEffect(() => {
     fetch('/api/profiles')
-      .then(res => res.json())
+      .then(res => res.ok ? res.json() : [])
       .then(data => {
-        setProfiles(data);
-        if (data.length > 0) setActiveProfile(data[0].id);
-      });
+        const profilesData = Array.isArray(data) ? data : [];
+        setProfiles(profilesData);
+        if (profilesData.length > 0) setActiveProfile(profilesData[0].id);
+      })
+      .catch(err => console.error("Error fetching profiles:", err));
   }, []);
 
   const renderContent = () => {

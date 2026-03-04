@@ -369,6 +369,18 @@ async function startServer() {
     res.json({ id: info.lastInsertRowid });
   });
 
+  // Generic file upload endpoint
+  app.post('/api/upload', upload.single('file'), (req: any, res) => {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No se subió ningún archivo' });
+    }
+    res.json({
+      file_name: req.file.originalname,
+      file_path: req.file.path,
+      mime_type: req.file.mimetype
+    });
+  });
+
   // --- Recruiting Module Endpoints ---
 
   // List job positions for a profile
