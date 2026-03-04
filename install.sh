@@ -16,24 +16,30 @@ echo -e "${BLUE}Iniciando instalación de PSBD Management Tool en Ubuntu...${NC}
 echo -e "${BLUE}Actualizando el sistema...${NC}"
 sudo apt update && sudo apt upgrade -y
 
-# 2. Install Node.js (Version 18)
-if ! command -v node &> /dev/null; then
-    echo -e "${BLUE}Instalando Node.js 18...${NC}"
-    curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+# 2. Install Node.js (Version 20 - More stable for modern packages)
+if ! command -v node &> /dev/null || [[ $(node -v | cut -d'v' -f2 | cut -d'.' -f1) -lt 20 ]]; then
+    echo -e "${BLUE}Instalando Node.js 20...${NC}"
+    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
     sudo apt install -y nodejs
+    # Ensure npm is the latest version
+    sudo npm install -g npm@latest
 else
     echo -e "${GREEN}Node.js ya está instalado: $(node -v)${NC}"
 fi
 
-# 3. Install build tools for SQLite
+# 3. Install build tools for SQLite and native modules
 echo -e "${BLUE}Instalando herramientas de compilación...${NC}"
-sudo apt install -y build-essential python3
+sudo apt install -y build-essential python3-minimal
 
 # 4. Install project dependencies
-echo -e "${BLUE}Limpiando instalaciones previas e instalando dependencias...${NC}"
-# Fix for "Cannot find native binding" error: remove lock and modules before fresh install
+echo -e "${BLUE}Limpiando e instalando dependencias (con soporte para módulos nativos)...${NC}"
 rm -rf node_modules package-lock.json
-npm install
+# Use --include=optional to ensure native bindings are fetched
+npm install --include=optional
+
+# Force rebuild of native modules to ensure they match the OS
+echo -e "${BLUE}Reconstruyendo módulos nativos...${NC}"
+npm rebuild
 
 # 5. Build the frontend
 echo -e "${BLUE}Compilando el frontend (Vite)...${NC}"
