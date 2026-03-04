@@ -44,6 +44,30 @@ Sigue estos pasos para instalar y ejecutar la herramienta de forma sencilla:
     npm start
     ```
 
+## Actualización de la Aplicación
+
+Para actualizar la aplicación a la última versión disponible en GitHub, sigue estos pasos desde la terminal (PowerShell o CMD) en la carpeta del proyecto:
+
+1.  **Descargar los últimos cambios**:
+    ```bash
+    git pull origin main
+    ```
+    *(Nota: Si usas un token de acceso personal (PAT), asegúrate de tenerlo configurado en tu configuración de Git local).*
+
+2.  **Actualizar dependencias**:
+    ```bash
+    npm install
+    ```
+
+3.  **Reconstruir la aplicación** (si estás en producción):
+    ```bash
+    npm run build
+    ```
+
+4.  **Reiniciar el servidor**:
+    Detén el proceso actual (Ctrl+C) y vuelve a ejecutar `npm start` o `npm run dev`.
+
+---
 ## Estructura del Proyecto
 
 -   `server.ts`: Servidor Backend (Express + SQLite). Gestiona la base de datos y las APIs.

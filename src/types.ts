@@ -170,10 +170,3 @@ export interface WorkHoursSummary {
   total_cost: number;
   total_sales: number;
 }
-
-export interface VersionInfo {
-  current: string;
-  latest: string;
-  changes: string[];
-  error?: string;
-}
