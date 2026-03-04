@@ -1,71 +1,62 @@
 # PSBD Management Tool
 
-Herramienta integral para la gestión de oportunidades, recruiting, staffing y finanzas.
+Herramienta integral para la gestión de oportunidades, recruiting, staffing y finanzas, optimizada para entornos Linux (Ubuntu).
 
 ## Requisitos Previos
 
-Para ejecutar esta herramienta en Windows 11, asegúrate de tener instalado:
+La aplicación está diseñada para ejecutarse en **Ubuntu 22.04 LTS** o superior. El instalador automático se encargará de configurar:
+- Node.js 18+
+- SQLite3
+- Herramientas de compilación esenciales
 
-1.  **Node.js** (Versión 18 o superior): [Descargar aquí](https://nodejs.org/)
-2.  **Git** (Opcional, para clonar el repositorio): [Descargar aquí](https://git-scm.com/)
+## Instalación en Ubuntu (Recomendado)
 
-## Instalación en Windows 11
-
-Sigue estos pasos para instalar y ejecutar la herramienta de forma sencilla:
+Hemos preparado un script de instalación automática que configura todo el entorno, instala las dependencias y registra la aplicación como un servicio del sistema para que se inicie automáticamente al arrancar el servidor.
 
 1.  **Descargar el código**:
-    Si tienes Git instalado, abre una terminal (PowerShell o CMD) y ejecuta:
     ```bash
     git clone <url-del-repositorio>
     cd psbd-management
     ```
-    Si no tienes Git, descarga el archivo ZIP del proyecto y extráelo en una carpeta.
 
-2.  **Instalar dependencias**:
-    Abre una terminal en la carpeta del proyecto y ejecuta:
+2.  **Ejecutar el instalador**:
+    Dale permisos de ejecución al script y lánzalo:
     ```bash
-    npm install
+    chmod +x install.sh
+    ./install.sh
     ```
 
-3.  **Ejecutar en modo desarrollo**:
-    Para probar la herramienta localmente:
-    ```bash
-    npm run dev
-    ```
-    La aplicación estará disponible en `http://localhost:3000`.
+3.  **Acceder a la aplicación**:
+    Una vez finalizado, abre tu navegador en: `http://localhost:3000`
 
-4.  **Despliegue para producción**:
-    Si deseas generar una versión optimizada:
-    ```bash
-    npm run build
-    ```
-    Y luego inicia el servidor:
-    ```bash
-    npm start
-    ```
+## Gestión del Servicio
+
+La aplicación se instala como un servicio de `systemd` llamado `psbd-mgmt`. Puedes gestionarlo con los siguientes comandos:
+
+- **Ver estado**: `sudo systemctl status psbd-mgmt`
+- **Reiniciar**: `sudo systemctl restart psbd-mgmt`
+- **Detener**: `sudo systemctl stop psbd-mgmt`
+- **Ver logs en tiempo real**: `sudo journalctl -u psbd-mgmt -f`
 
 ## Actualización de la Aplicación
 
-Para actualizar la aplicación a la última versión disponible en GitHub, sigue estos pasos desde la terminal (PowerShell o CMD) en la carpeta del proyecto:
+Para actualizar a la última versión disponible en GitHub:
 
-1.  **Descargar los últimos cambios**:
+1.  **Descargar cambios**:
     ```bash
     git pull origin main
     ```
-    *(Nota: Si usas un token de acceso personal (PAT), asegúrate de tenerlo configurado en tu configuración de Git local).*
 
-2.  **Actualizar dependencias**:
+2.  **Reinstalar y Reconstruir**:
     ```bash
     npm install
-    ```
-
-3.  **Reconstruir la aplicación** (si estás en producción):
-    ```bash
     npm run build
     ```
 
-4.  **Reiniciar el servidor**:
-    Detén el proceso actual (Ctrl+C) y vuelve a ejecutar `npm start` o `npm run dev`.
+3.  **Reiniciar el servicio**:
+    ```bash
+    sudo systemctl restart psbd-mgmt
+    ```
 
 ---
 ## Estructura del Proyecto
