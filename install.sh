@@ -30,7 +30,9 @@ echo -e "${BLUE}Instalando herramientas de compilación...${NC}"
 sudo apt install -y build-essential python3
 
 # 4. Install project dependencies
-echo -e "${BLUE}Instalando dependencias del proyecto...${NC}"
+echo -e "${BLUE}Limpiando instalaciones previas e instalando dependencias...${NC}"
+# Fix for "Cannot find native binding" error: remove lock and modules before fresh install
+rm -rf node_modules package-lock.json
 npm install
 
 # 5. Build the frontend
